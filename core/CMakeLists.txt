@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+
 project(core CXX C)
 
 include(../cmake/utils.cmake)
@@ -7,7 +8,9 @@ set(core_SOURCES
         LuaWrapper/luacompiler.cpp
         LuaWrapper/luaprocessor.cpp
         Proxies/editorproxy.cpp
-        DAO/databasemanager.cpp)
+        DAO/databasemanager.cpp
+        DAO/object.cpp
+        DAO/Utils/bsonutils.cpp)
 
 set(core_HEADERS
         Interfaces/IEditor.h
@@ -15,7 +18,9 @@ set(core_HEADERS
         LuaWrapper/luaprocessor.h
         LuaWrapper/luna.h
         Proxies/editorproxy.h
-        DAO/databasemanager.h)
+        DAO/databasemanager.h
+        DAO/object.h
+        DAO/Utils/bsonutils.h)
 
 include_directories(/usr/include/lua5.2/) #Inclusão do diretório onde estão os headers de Lua
 link_directories(/usr/local/lib/lua/)

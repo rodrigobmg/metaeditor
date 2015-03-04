@@ -6,12 +6,11 @@ include(cmake/utils.cmake)
 include(cmake/qt_config.cmake)
 
 ##Macros definidas
-configure_qt() #incluido no modulo qt_config.cmake
-compiler_config() #incluido no modulo utils.cmake
+configure_qt()      #definido no modulo qt_config.cmake
+compiler_config()   #definido no modulo utils.cmake
 
 ##Declaração de opções para compilação
 set(enable_tests ON)
-
 
 ##Especificação dos módulos a serem compilados
 set(metaeditor_SOURCES
@@ -21,7 +20,7 @@ set(metaeditor_SOURCES
         cte/Ui/mainwindow.cpp
         cte/Utils/linenumberwidget.cpp
         cte/Utils/logfile.cpp)
-
+##Especificação dos cabeçalhos do projeto
 set(metaeditor_HEADERS
         cte/plaineditor.h
         cte/Data/dataman.h

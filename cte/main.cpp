@@ -9,22 +9,17 @@ int main(int argc, char *argv[])
 
     try
     {
-        if( DatabaseManager::instance().openConnection() == true )
-        {
+        DatabaseManager::instance().connect();
 
-            QApplication application(argc, argv);
-            MainWindow window;
-            window.show();
+        QApplication application(argc, argv);
+        MainWindow window;
+        window.show();
 
-            ret = application.exec();
-        }
-        else
-        {
-            std::cout << "Error" << std::endl;
-        }
+        ret = application.exec();
     }
     catch(std::exception& ex)
     {
+        //That catch is only for exceptions not treated
         std::cout << ex.what() << std::endl;
     }
 
