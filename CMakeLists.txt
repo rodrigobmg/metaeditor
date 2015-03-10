@@ -4,10 +4,12 @@ project(metaeditor CXX)
 ##Inclusões do cmakes
 include(cmake/utils.cmake)
 include(cmake/qt_config.cmake)
+include(cmake/configure_libraries.cmake)
 
 ##Macros definidas
-configure_qt()      #definido no modulo qt_config.cmake
-compiler_config()   #definido no modulo utils.cmake
+configure_qt()         	#definido no modulo qt_config.cmake
+compiler_config()      	#definido no modulo utils.cmake
+configure_libraries()	#definido no módulo configure_libraries.cmake
 
 ##Declaração de opções para compilação
 set(enable_tests ON)
@@ -44,11 +46,10 @@ add_subdirectory(core)
 add_subdirectory(tests)
 
 ##diretórios de inclusão
-#include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${LUA_INCLUDE_DIR}) #Inclusão do diretório onde estão os headers de Lua
+include_directories(${MONGOC_INCLUDE_DIR}/libbson-1.0)
+include_directories(${MONGOC_INCLUDE_DIR}/libmongoc-1.0)
 include_directories(core)
-include_directories(/usr/include/lua5.2/) #Inclusão do diretório onde estão os headers de Lua
-include_directories(/usr/local/include/libbson-1.0)
-include_directories(/usr/local/include/libmongoc-1.0)
 
 if(enable_tests)
     message(STATUS "Enabling Tests")

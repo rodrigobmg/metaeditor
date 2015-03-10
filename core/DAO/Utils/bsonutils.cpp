@@ -1,6 +1,6 @@
 #include "bsonutils.h"
 
-const bson_value_t* BSONUtils::getField(bson_t *bson, const char *field_name)
+const bson_value_t* BSONUtils::getField(const bson_t *bson, const char *field_name)
 {
     bson_iter_t it;
 
@@ -12,24 +12,24 @@ const bson_value_t* BSONUtils::getField(bson_t *bson, const char *field_name)
     return nullptr;
 }
 
-char* BSONUtils::getString(bson_t *bson, const char *field_name)
+char* BSONUtils::getString(const bson_t *bson, const char *field_name)
 {
-    bson_value_t* ret;
+    const bson_value_t* ret;
     if( ( ret = BSONUtils::getField(bson, field_name) ) != nullptr )
     {
         //We are searching only the string symbol
-        if(ret->value_type == BSON_TYPE_SYMBOL)
+        if(ret->value_type == BSON_TYPE_UTF8)
         {
-            return ret->value.v_symbol.symbol;
+            return ret->value.v_utf8.str;
         }
     }
 
     return "";
 }
 
-int BSONUtils::getInt(bson_t *bson, const char *field_name)
+int BSONUtils::getInt(const bson_t *bson, const char *field_name)
 {
-    bson_value_t* ret;
+    const bson_value_t* ret;
     if( ( ret = BSONUtils::getField(bson, field_name) ) != nullptr )
     {
         //We are searching only the string symbol
@@ -42,9 +42,9 @@ int BSONUtils::getInt(bson_t *bson, const char *field_name)
     return -1;
 }
 
-double BSONUtils::getDouble(bson_t *bson, const char *field_name)
+double BSONUtils::getDouble(const bson_t *bson, const char *field_name)
 {
-    bson_value_t* ret;
+    const bson_value_t* ret;
     if( ( ret = BSONUtils::getField(bson, field_name) ) != nullptr )
     {
         //We are searching only the string symbol
@@ -57,7 +57,7 @@ double BSONUtils::getDouble(bson_t *bson, const char *field_name)
     return -1.0;
 }
 
-char* BSONUtils::getArray(bson_t *bson, const char *field_name)
+char* BSONUtils::getArray(const bson_t *bson, const char *field_name)
 {
     return "";
 }

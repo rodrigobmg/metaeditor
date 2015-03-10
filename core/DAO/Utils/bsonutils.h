@@ -10,13 +10,13 @@
 class BSONUtils
 {
 private:
-    static const bson_value_t* getField(bson_t* bson, const char* field_name);
+    static const bson_value_t* getField(const bson_t *bson, const char* field_name);
 
 public:
-    static char* getString(bson_t* bson, const char* field_name);
-    static int getInt(bson_t* bson, const char* field_name);
-    static double getDouble(bson_t* bson, const char* field_name);
-    static char* getArray(bson_t* bson, const char* field_name);
+    static char* getString(const bson_t* bson, const char* field_name);
+    static int getInt(const bson_t* bson, const char* field_name);
+    static double getDouble(const bson_t *bson, const char* field_name);
+    static char* getArray(const bson_t* bson, const char* field_name);
 };
 
 #endif // BSONUTILS_H

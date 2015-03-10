@@ -2,12 +2,10 @@
 #define DATABASEMANAGER_H
 
 #include "mongoc.h"
-
 #include "object.h"
 
 
 typedef mongoc_client_t mongo_client;
-const uint16_t MongoPortDefault = 27017;
 
 class DatabaseException : public std::exception
 {
@@ -20,6 +18,10 @@ public:
     virtual const char* what() const throw();
 };
 
+
+static const char * DefaultDatabaseName = "talisman";
+static const uint16_t MongoPortDefault = 27017;
+
 class DatabaseManager
 {
 private:
@@ -28,16 +30,19 @@ private:
 
 public:
     static DatabaseManager& instance();
+    void tryReconnection();
     void connect(const char* ip = "127.0.0.1", uint16_t port = MongoPortDefault) throw (DatabaseException);
-    Object* read(const char* collection_name, const char* object_name) throw (DatabaseException);
-    bool create(const bson_t* b);
-    bool destroy(bson_t* b);
-    bool update(const bson_t*b);
+    Object* read(const char* collection_name, const char* object_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
+    bool create(const bson_t* b, const char* collection_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
+    bool destroy(bson_t* b, const char* collection_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
+    bool update(const bson_t*b, const char* collection_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
 
-    bool exists(const char* object_name);
+    bool exists(const char* object_name, mongoc_collection_t *collection);
 
 private:
     mongo_client* m_client;
+    const char* m_ip;
+    uint16_t m_port;
 };
 
 #endif // DATABASEMANAGER_H

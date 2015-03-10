@@ -1,9 +1,10 @@
 #include <iostream>
-#include "databasemanager.h"
-
 #include "mongoc.h"
-#include <bson-iter.h>
+
+//Project imports
+#include "databasemanager.h"
 #include "object.h"
+#include "Utils/bsonutils.h"
 
 DatabaseException::DatabaseException(const char *message)
 {
@@ -39,6 +40,11 @@ DatabaseManager& DatabaseManager::instance()
     return inst;
 }
 
+void DatabaseManager::tryReconnection()
+{
+    connect(m_ip, m_port);
+}
+
 void DatabaseManager::connect(const char *ip, uint16_t port) throw (DatabaseException)
 {
     mongoc_init();
@@ -63,26 +69,29 @@ void DatabaseManager::connect(const char *ip, uint16_t port) throw (DatabaseExce
     {
         bson_destroy (&reply);
         bson_destroy (command);
-
         throw DatabaseException(error.message);
     }
+
+    m_ip = ip;
+    m_port = port;
 
     bson_destroy (&reply);
     bson_destroy (command);
 }
 
-Object* DatabaseManager::read(const char *collection_name, const char* object_name) throw(DatabaseException)
+#define destroy_object(obj) delete obj; obj = nullptr;
+
+Object* DatabaseManager::read(const char *collection_name, const char* object_name, const char* database_name) throw(DatabaseException)
 {
     if(m_client == nullptr)
     {
-        //ToDo: Tentar realizar conexão novamente
-        throw DatabaseException("Conexão com o banco de dados não existente.");
+        tryReconnection();
     }
 
-    mongoc_collection_t* collection = mongoc_client_get_collection(m_client, "talisman", collection_name);
-    bson_t* query = bson_new();
-    BSON_APPEND_UTF8 (query, "name", object_name);
+    mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name, collection_name);
+    bson_t* query = BCON_NEW("name", object_name);
     mongoc_cursor_t* cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
     const bson_t* doc;
     Object* obj = nullptr;
 
@@ -98,9 +107,57 @@ Object* DatabaseManager::read(const char *collection_name, const char* object_na
             }
         }
 
-        delete obj;
-        obj = nullptr;
+        destroy_object(obj);
     }
 
     return obj;
+}
+
+bool DatabaseManager::create(const bson_t *b, const char *collection_name, const char *database_name) throw(DatabaseException)
+{
+    if(m_client == nullptr)
+    {
+        //Pode levantar exceção
+        tryReconnection();
+    }
+
+    char* object_name = BSONUtils::getString(b, "name");
+    mongoc_collection_t* collection = mongoc_client_get_collection (m_client, database_name, collection_name);
+
+    if(exists(object_name, collection) == true)
+    {
+        mongoc_collection_destroy (collection);
+        return false;
+    }
+
+    bson_error_t error;
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, b, NULL, &error))
+    {
+        std::cout << error.message << std::endl;
+        return false;
+    }
+
+    mongoc_collection_destroy (collection);
+    return true;
+}
+
+bool DatabaseManager::exists(const char *object_name, mongoc_collection_t* collection)
+{
+    bson_t* query = BCON_NEW ("$query", "{", "name", BCON_UTF8(object_name), "}");
+    mongoc_cursor_t *cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+    const bson_t* b;
+    if(mongoc_cursor_next(cursor, &b))
+    {
+        const char * retName = BSONUtils::getString(b,"name");
+        if( strcmp(retName, object_name) == 0)
+        {
+            mongoc_cursor_destroy(cursor);
+            bson_destroy(query);
+            return true;
+        }
+    }
+
+    mongoc_cursor_destroy(cursor);
+    bson_destroy (query);
+    return false;
 }

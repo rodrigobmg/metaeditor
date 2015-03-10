@@ -52,11 +52,10 @@ void MainWindow::setupEditor()
 
 bool MainWindow::eventFilter(QObject * obj, QEvent * event)
 {
-    //Update relevant information
-    updateStatusBar();
-
     if( obj == m_editor )
     {
+        //Update relevant information
+        updateStatusBar();
         return m_editor->eventFilter(obj, event);
     }
 
@@ -65,11 +64,14 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * event)
 
 void MainWindow::updateStatusBar()
 {
-    QString status = QString(tr("Coluna: %1 Editável: %2 Tipo: %3")).
-            arg(m_editor->columnNumber()).
-            arg(m_editor->isEditable() ? "sim" : "não").
-            arg(m_editor->objectType());
-    ui->m_statusBar->showMessage(status);
+    if( m_editor != nullptr )
+    {
+        QString status = QString(tr("Coluna: %1 Editável: %2 Tipo: %3")).
+                arg(m_editor->columnNumber()).
+                arg(m_editor->isEditable() ? "sim" : "não").
+                arg(m_editor->objectType());
+        ui->m_statusBar->showMessage(status);
+    }
 }
 
 ////////////////

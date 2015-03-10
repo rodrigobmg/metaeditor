@@ -1,11 +1,11 @@
 #include "logfile.h"
 #include <string.h>
 
-#if _WIN32 || _WIN64
+#if _WIN32
     #undef UNICODE
     #include <windows.h>
     #pragma warning (disable : 4996 ) //_CRT_SECURE_NO_WARNINGS
-#elif __linux
+#elif __linux || __APPLE__
     #include <sys/stat.h> //for mkdir
     #include <sys/types.h>
     #include <stdlib.h>
@@ -36,12 +36,13 @@ LogFile::LogFile(const char* LogFileName,const char* LogDirectoryName, bool bWit
 
     this->m_withDate = bWithDate;
 
-#if _WIN32 || _WIN64
+#if _WIN32
     CreateDirectory(LogDirectoryName, NULL);
-#else
+#elif __linux || __APPLE__
     mkdir(m_directory, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+#else
+    #pragma error ("Não é possível criar o diretório")
 #endif
-
 }
 
 LogFile::~LogFile()

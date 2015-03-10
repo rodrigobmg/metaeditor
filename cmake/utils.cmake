@@ -1,7 +1,7 @@
 macro(compiler_config)
 
     # Initialize CXXFLAGS.
-    set(CMAKE_CXX_FLAGS                "-std=c++11 -Wall -lz")
+    set(CMAKE_CXX_FLAGS                "-std=c++11 -Wall -lz -v")
     set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g")
     set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
     set(CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
@@ -20,6 +20,6 @@ macro(compiler_config)
         message(FATAL_ERROR "Your C++ compiler does not support C++11.")
     endif()
 
-    message(STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 
 endmacro()

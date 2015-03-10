@@ -113,12 +113,15 @@ LineManager::LineManager()
 
 LineManager::~LineManager()
 {
-    for( auto line : m_lines )
+    if( m_lines.empty() == false )
     {
-        delete line.second;
-    }
+        for( auto line : m_lines )
+        {
+            delete line.second;
+        }
 
-    m_lines.clear();
+        m_lines.clear();
+    }
 }
 
 unsigned int LineManager::lineCount()
@@ -259,13 +262,14 @@ void LineManager::addName(const char* str, unsigned int col, unsigned int line)
 
 bool LineManager::isEditable(unsigned int col, unsigned int line)
 {
-    if(m_lines.size() == 0 )
+    if(m_lines.empty())
     {
         return true;
     }
 
     try
     {
+        std::cout << "m_lines.size() " << m_lines.size() << std::endl;
         Line* ptr = m_lines.at(line);
         LineField* type = ptr->searchAtCol(col);
 
@@ -288,7 +292,7 @@ bool LineManager::isEditable(unsigned int col, unsigned int line)
 
 std::string LineManager::type(unsigned int col, unsigned int line) throw(std::exception)
 {
-    if(m_lines.size() == 0 )
+    if(m_lines.empty())
     {
         return "Text";
     }

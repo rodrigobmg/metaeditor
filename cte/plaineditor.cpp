@@ -33,11 +33,18 @@ PlainEditor::~PlainEditor()
 #ifdef __LOG_TEST__
     logFile.write("[PlainEditor] dtor");
 #endif
+
     if( m_dataman )
+    {
         delete m_dataman;
+        m_dataman = nullptr;
+    }
 
     if( m_lineNumberArea )
+    {
         delete m_lineNumberArea;
+        m_lineNumberArea = nullptr;
+    }
 }
 
 int PlainEditor::lineNumberAreaWidth()
@@ -137,6 +144,8 @@ void PlainEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
 bool PlainEditor::eventFilter(QObject * obj, QEvent * event)
 {
+    if( this->m_dataman == nullptr ) return true;
+
     if (event->type() == QEvent::KeyPress)
     {
 #ifdef __LOG_TEST__
@@ -322,12 +331,22 @@ int PlainEditor::columnNumber()
 
 bool PlainEditor::isEditable()
 {
-    return m_dataman->isEditable(columnNumber(), currentLine());
+    if( m_dataman != nullptr )
+    {
+        return m_dataman->isEditable(columnNumber(), currentLine());
+    }
+
+    return false;
 }
 
 const QString PlainEditor::objectType()
 {
-    return QString::fromStdString(m_dataman->type(columnNumber(), currentLine()));
+    if( m_dataman != nullptr )
+    {
+        return QString::fromStdString(m_dataman->type(columnNumber(), currentLine()));
+    }
+
+    return "Error";
 }
 
 /***

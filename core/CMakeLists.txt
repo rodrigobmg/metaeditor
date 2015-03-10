@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(core CXX C)
 
 include(../cmake/utils.cmake)
+include(../cmake/configure_libraries.cmake)
 
 set(core_SOURCES
         LuaWrapper/luacompiler.cpp
@@ -22,13 +23,12 @@ set(core_HEADERS
         DAO/object.h
         DAO/Utils/bsonutils.h)
 
-include_directories(/usr/include/lua5.2/) #Inclusão do diretório onde estão os headers de Lua
-link_directories(/usr/local/lib/lua/)
+include_directories(${LUA_INCLUDE_DIR})
+link_directories(${LUA_LIBS_DIR})
 
-include_directories(/usr/local/include/libbson-1.0)
-include_directories(/usr/local/include/libmongoc-1.0)
-link_directories(/usr/local/lib/libmongoc-1.0)
-link_directories(/usr/local/lib/libbson-1.0)
+include_directories(${MONGOC_INCLUDE_DIR}/libbson-1.0)
+include_directories(${MONGOC_INCLUDE_DIR}/libmongoc-1.0)
+link_directories(${MONGOC_LIBS_DIR})
 
 set(enable_tests ON)
 if(enable_tests)

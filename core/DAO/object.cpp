@@ -6,7 +6,7 @@ using utils = BSONUtils;
 Object::Object(const bson_t *data) :
     m_name(nullptr), m_id(nullptr)
 {
-    bson_copy_to(data, m_data);
+    m_data = bson_copy(data);
 }
 
 Object::~Object()
@@ -39,8 +39,8 @@ bool Object::unserialize()
 
     if( name_len > 0 )
     {
-        m_name = new char[strlen+1];
-        strcpy(m_name, src);
+        m_name = new char[name_len+1];
+        strcpy(m_name, name);
         return true;
     }
 

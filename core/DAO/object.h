@@ -11,7 +11,7 @@ public:
     const char* Name();
     const char* Id();
 
-protected:
+public:
     virtual bool serialize(char* json);
     virtual bool unserialize();
 

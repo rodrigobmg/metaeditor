@@ -26,3 +26,8 @@
 *.exe
 *.out
 *.app
+
+#Qt Creator Shit
+*.txt.user
+
+*.autosave
