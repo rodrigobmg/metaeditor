@@ -33,7 +33,7 @@ public:
     void tryReconnection();
     void connect(const char* ip = "127.0.0.1", uint16_t port = MongoPortDefault) throw (DatabaseException);
     Object* read(const char* collection_name, const char* object_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
-    bool create(const bson_t* b, const char* collection_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
+    bool create(Object& o, const char* collection_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
     bool destroy(bson_t* b, const char* collection_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
     bool update(const bson_t*b, const char* collection_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
 

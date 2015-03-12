@@ -26,6 +26,10 @@ DatabaseManager::DatabaseManager() :
 
 }
 
+
+///////////////
+/// \brief DatabaseManager
+///
 DatabaseManager::~DatabaseManager()
 {
     if( m_client )
@@ -99,8 +103,12 @@ Object* DatabaseManager::read(const char *collection_name, const char* object_na
     {
         obj = new Object(doc);
 
-        if( obj->unserialize() == true )
+        if( obj->unwrap() == true )
         {
+            std::cout << "name: " << obj->Name();
+            std::cout << "_id: " << obj->Id();
+            std::cout << std::endl;
+
             if( strcmp(obj->Name(), object_name) == 0 )
             {
                 return obj;
@@ -113,7 +121,7 @@ Object* DatabaseManager::read(const char *collection_name, const char* object_na
     return obj;
 }
 
-bool DatabaseManager::create(const bson_t *b, const char *collection_name, const char *database_name) throw(DatabaseException)
+bool DatabaseManager::create(Object& o, const char *collection_name, const char *database_name) throw(DatabaseException)
 {
     if(m_client == nullptr)
     {
@@ -121,24 +129,37 @@ bool DatabaseManager::create(const bson_t *b, const char *collection_name, const
         tryReconnection();
     }
 
-    char* object_name = BSONUtils::getString(b, "name");
     mongoc_collection_t* collection = mongoc_client_get_collection (m_client, database_name, collection_name);
 
-    if(exists(object_name, collection) == true)
+    if(exists(o.Name(), collection) == true)
     {
         mongoc_collection_destroy (collection);
         return false;
     }
 
     bson_error_t error;
+    const bson_t* b = o.Data();
     if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, b, NULL, &error))
     {
         std::cout << error.message << std::endl;
+        mongoc_collection_destroy (collection);
         return false;
     }
 
     mongoc_collection_destroy (collection);
     return true;
+}
+
+bool DatabaseManager::destroy(bson_t *b, const char *collection_name, const char *database_name) throw (DatabaseException)
+{
+    if(m_client == nullptr)
+    {
+        //Pode levantar exceção
+        tryReconnection();
+    }
+
+    mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name, collection_name);
+
 }
 
 bool DatabaseManager::exists(const char *object_name, mongoc_collection_t* collection)

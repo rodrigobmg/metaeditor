@@ -62,4 +62,24 @@ char* BSONUtils::getArray(const bson_t *bson, const char *field_name)
     return "";
 }
 
+bool BSONUtils::getOID(const bson_t *bson, char* ret_oid)
+{
+    if( ret_oid == nullptr )
+    {
+        return false;
+    }
+
+    const bson_value_t* ret;
+    if( ( ret = BSONUtils::getField(bson, "_id") ) != nullptr )
+    {
+        if(ret->value_type == BSON_TYPE_OID)
+        {
+            bson_oid_to_string(&ret->value.v_oid, ret_oid);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 

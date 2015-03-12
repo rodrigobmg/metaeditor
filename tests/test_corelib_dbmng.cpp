@@ -9,19 +9,24 @@
 #include <bson.h>
 
 //Funções utilitárias usadas nos testes
-static bson_t * createBson(const char* name, int age)
+static bson_t * createBson(const char* name)
 {
-    bson_t* b = bson_new();
+    bson_t* bson = bson_new();
+
+    ////////////////////////////////
+    if( bson == nullptr )
+    {
+        return nullptr;
+    }
+    ////////////////////////////////
+
     bson_oid_t oid;
     bson_oid_init(&oid, NULL);
 
-////////////////////////////////
-    ASSERT_TRUE(b != nullptr) << "Falha ao alocar memória";
-////////////////////////////////
+    BSON_APPEND_OID(bson, "_id", &oid);
+    BSON_APPEND_UTF8(bson, "name", name);
 
-    BSON_APPEND_OID(b, "_id", &oid);
-    BSON_APPEND_UTF8(b, "name", name);
-    BSON_APPEND_INT64(b, "age", age);
+    return bson;
 }
 
 ///
@@ -37,9 +42,10 @@ TEST(CoreLib, DatabaseManagerCreateOK)
 {
     try
     {
-        bson_t* b = createBson("insertTest", 30);
-        int ret = DatabaseManager::instance().create(b, "users", "test");
-        bson_destroy(b);
+        char* name = new char[20];
+        strcpy(name, "insertTest");
+        Object o(name);
+        int ret = DatabaseManager::instance().create(o, "users", "test");
         ASSERT_TRUE(ret == true);
     }
     catch(DatabaseException& ex)
@@ -63,9 +69,10 @@ TEST(CoreLib, DatabaseManagerCreateFAIL)
 {
     try
     {
-        bson_t* b = createBson("insertTest", 30);
-        int ret = DatabaseManager::instance().create(b, "users", "test");
-        bson_destroy(b);
+        char* name = new char[20];
+        strcpy(name, "insertTest");
+        Object o(name);
+        int ret = DatabaseManager::instance().create(o, "users", "test");
         ASSERT_TRUE(ret == false);
     }
     catch(DatabaseException& ex)

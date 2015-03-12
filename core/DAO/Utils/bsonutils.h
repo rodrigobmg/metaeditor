@@ -17,6 +17,7 @@ public:
     static int getInt(const bson_t* bson, const char* field_name);
     static double getDouble(const bson_t *bson, const char* field_name);
     static char* getArray(const bson_t* bson, const char* field_name);
+    static bool getOID(const bson_t* bson, char* ret_oid);
 };
 
 #endif // BSONUTILS_H

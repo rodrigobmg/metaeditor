@@ -29,7 +29,7 @@ install(TARGETS tests ARCHIVE RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/bin)
 
 #Executável 2
 set(core_tests_SOURCES
-        test_corelib.cpp)
+        test_corelib_dbmng.cpp)
 
 add_executable(test_corelib ${core_tests_SOURCES})
 target_link_libraries(test_corelib core_static ${GTEST_BOTH_LIBRARIES} pthread)
