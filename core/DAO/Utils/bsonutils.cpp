@@ -3,7 +3,6 @@
 const bson_value_t* BSONUtils::getField(const bson_t *bson, const char *field_name)
 {
     bson_iter_t it;
-
     if( bson_iter_init_find(&it, bson, field_name) == true )
     {
         return bson_iter_value(&it);
@@ -81,5 +80,3 @@ bool BSONUtils::getOID(const bson_t *bson, char* ret_oid)
 
     return false;
 }
-
-

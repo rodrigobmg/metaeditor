@@ -21,14 +21,21 @@ set(metaeditor_SOURCES
         cte/Data/dataman.cpp
         cte/Ui/mainwindow.cpp
         cte/Utils/linenumberwidget.cpp
-        cte/Utils/logfile.cpp)
+        cte/Utils/logfile.cpp
+##Objetos utilizados pelo editor
+        cte/Objects/softwarebase.cpp
+        cte/Objects/user.cpp)
+
 ##Especificação dos cabeçalhos do projeto
 set(metaeditor_HEADERS
         cte/plaineditor.h
         cte/Data/dataman.h
         cte/Ui/mainwindow.h
         cte/Utils/linenumberwidget.h
-        cte/Utils/logfile.h)
+        cte/Utils/logfile.h
+##Objetos utilizados pelo editor
+        cte/Objects/softwarebase.h
+        cte/Objects/user.h)
 
 set(metaeditor_FORMS
         cte/Forms/mainwindow.ui)

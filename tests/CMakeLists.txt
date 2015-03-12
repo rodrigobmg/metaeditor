@@ -31,8 +31,8 @@ install(TARGETS tests ARCHIVE RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/bin)
 set(core_tests_SOURCES
         test_corelib_dbmng.cpp)
 
-add_executable(test_corelib ${core_tests_SOURCES})
-target_link_libraries(test_corelib core_static ${GTEST_BOTH_LIBRARIES} pthread)
-add_test(AllTests test_corelib)
-install(TARGETS test_corelib ARCHIVE RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/bin)
+add_executable(test_corelib_dbmng ${core_tests_SOURCES})
+target_link_libraries(test_corelib_dbmng core_static ${GTEST_BOTH_LIBRARIES} pthread)
+add_test(AllTests test_corelib_dbmng)
+install(TARGETS test_corelib_dbmng ARCHIVE RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/bin)
 

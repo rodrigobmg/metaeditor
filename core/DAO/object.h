@@ -21,6 +21,8 @@ public:
     const char* Name();
     const char* Id();
     const bson_t* Data();
+    void setName(char* name);
+
     //Utils
     virtual void wrap();
     virtual bool unwrap();

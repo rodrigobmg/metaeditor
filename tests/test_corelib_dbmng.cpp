@@ -97,8 +97,6 @@ TEST(CoreLib, DatabaseManagerReadOK)
         Object* obj = DatabaseManager::instance().read("users", "insertTest", "test");
         //
         ASSERT_TRUE(obj != nullptr);
-        //
-        delete obj;
     }
     catch(DatabaseException& ex)
     {
@@ -124,6 +122,57 @@ TEST(CoreLib, DatabaseManagerReadFAIL)
         Object* obj = DatabaseManager::instance().read("users", "insertTest1", "test");
         //
         ASSERT_TRUE(obj == nullptr);
+        //
+        delete obj;
+    }
+    catch(DatabaseException& ex)
+    {
+        FAIL() << "Falha de conexão: " << ex.what() << std::endl;
+    }
+}
+
+///
+/// \brief Teste responsável por afirmar que caso não haja
+/// o objeto na tabela informada o retorno da função será
+/// um ponteiro nulo para o objeto.
+/// O teste falha em 2 ocasiões:
+/// 1) Conexão não existente - Caso não haja uma conexão com o
+/// banco de dados uma excessão será levantada.
+/// 2) Ponteiro para objeto diferente de nulo - Está opção não
+/// deveria ser cogitada, mas pode ocorrer da memória estar com
+/// um lixo que seja igual ao nome informado para busca
+///
+TEST(CoreLib, DatabaseManagerDestroyOK)
+{
+    try
+    {
+        Object* obj = DatabaseManager::instance().read("users", "insertTest", "test");
+        //
+        ASSERT_TRUE(obj != nullptr);
+        //
+        bool ret = DatabaseManager::instance().destroy(*obj, "users", "test");
+        //
+        ASSERT_TRUE(ret == true);
+
+        delete obj;
+    }
+    catch(DatabaseException& ex)
+    {
+        FAIL() << "Falha de conexão: " << ex.what() << std::endl;
+    }
+}
+
+TEST(CoreLib, DatabaseManagerDestroyFAIL)
+{
+    try
+    {
+        char* name = new char[20];
+        strcpy(name, "insertTest");
+        Object o(name);
+        //Objeto não existe na base de dados
+        bool ret = DatabaseManager::instance().destroy(o, "users", "test");
+        //
+        ASSERT_TRUE(ret == false);
     }
     catch(DatabaseException& ex)
     {

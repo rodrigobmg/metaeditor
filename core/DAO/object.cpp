@@ -20,7 +20,6 @@ Object::Object(const bson_t *data) :
 Object::Object(char *name) :
     m_data(nullptr), m_name(name), m_id(nullptr)
 {
-
 }
 
 Object::~Object()
@@ -48,8 +47,10 @@ void Object::wrap()
     {
         bson_oid_t oid;
         bson_oid_init(&oid, NULL);
+
         m_id = new char[MaxIdSize];
         bson_oid_to_string(&oid, m_id);
+
         m_data = bson_new();
         BSON_APPEND_OID(m_data, "_id", &oid);
         BSON_APPEND_UTF8(m_data, "name", m_name);
@@ -58,8 +59,6 @@ void Object::wrap()
 
 bool Object::unwrap()
 {
-    std::cout << "m_data: " << m_data << std::endl;
-
     if( m_data != nullptr )
     {
         char* name = utils::getString(m_data, "name");
@@ -89,6 +88,19 @@ const char* Object::Name()
     return m_name;
 }
 
+void Object::setName(char *name)
+{
+    if( name != nullptr )
+    {
+        if( m_name != nullptr )
+        {
+            delete m_name;
+        }
+
+        m_name = name;
+    }
+}
+
 const char *Object::Id()
 {
     return m_id;
@@ -96,7 +108,7 @@ const char *Object::Id()
 
 const bson_t* Object::Data()
 {
-    if( m_data == nullptr )
+    if( m_data == nullptr)
     {
         this->wrap();
     }

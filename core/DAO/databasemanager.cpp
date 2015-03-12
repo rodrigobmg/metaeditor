@@ -105,10 +105,6 @@ Object* DatabaseManager::read(const char *collection_name, const char* object_na
 
         if( obj->unwrap() == true )
         {
-            std::cout << "name: " << obj->Name();
-            std::cout << "_id: " << obj->Id();
-            std::cout << std::endl;
-
             if( strcmp(obj->Name(), object_name) == 0 )
             {
                 return obj;
@@ -150,7 +146,7 @@ bool DatabaseManager::create(Object& o, const char *collection_name, const char 
     return true;
 }
 
-bool DatabaseManager::destroy(bson_t *b, const char *collection_name, const char *database_name) throw (DatabaseException)
+bool DatabaseManager::destroy(Object& o, const char *collection_name, const char *database_name) throw (DatabaseException)
 {
     if(m_client == nullptr)
     {
@@ -160,6 +156,54 @@ bool DatabaseManager::destroy(bson_t *b, const char *collection_name, const char
 
     mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name, collection_name);
 
+    if(!exists(o.Name(), collection))
+    {
+        return false;
+    }
+
+    const bson_t* b = o.Data();
+    bson_error_t error;
+    if (!mongoc_collection_remove (collection, MONGOC_REMOVE_NONE, b, NULL, &error))
+    {
+        std::cout << "Erro ao remover: " << o.Name();
+        std::cout << std::endl << "mensagem: " << error.message << std::endl;
+        mongoc_collection_destroy(collection);
+        return false;
+    }
+
+    mongoc_collection_destroy(collection);
+    return true;
+}
+
+bool DatabaseManager::update(Object& o, const char* collection_name, const char* database_name) throw (DatabaseException)
+{
+    if(m_client == nullptr)
+    {
+        //Pode levantar exceção
+        tryReconnection();
+    }
+
+    mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name, collection_name);
+
+    if(!exists(o.Name(), collection))
+    {
+        return false;
+    }
+
+    const bson_t* b = o.Data();
+    const bson_t* query = BCON_NEW("name", o.Name());
+    bson_error_t error;
+
+    if (!mongoc_collection_update (collection, MONGOC_UPDATE_NONE, query, b, NULL, &error))
+    {
+        std::cout << "Erro ao atualizar: " << o.Name();
+        std::cout << std::endl << "mensagem: " << error.message << std::endl;
+        mongoc_collection_destroy(collection);
+        return false;
+    }
+
+    mongoc_collection_destroy(collection);
+    return true;
 }
 
 bool DatabaseManager::exists(const char *object_name, mongoc_collection_t* collection)
