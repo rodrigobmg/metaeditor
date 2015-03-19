@@ -16,7 +16,6 @@ char* BSONUtils::getString(const bson_t *bson, const char *field_name)
     const bson_value_t* ret;
     if( ( ret = BSONUtils::getField(bson, field_name) ) != nullptr )
     {
-        //We are searching only the string symbol
         if(ret->value_type == BSON_TYPE_UTF8)
         {
             return ret->value.v_utf8.str;
@@ -46,7 +45,6 @@ double BSONUtils::getDouble(const bson_t *bson, const char *field_name)
     const bson_value_t* ret;
     if( ( ret = BSONUtils::getField(bson, field_name) ) != nullptr )
     {
-        //We are searching only the string symbol
         if(ret->value_type == BSON_TYPE_DOUBLE)
         {
             return ret->value.v_double;

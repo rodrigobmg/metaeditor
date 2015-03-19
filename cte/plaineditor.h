@@ -1,11 +1,11 @@
 #ifndef PLAINEDITOR_H
 #define PLAINEDITOR_H
 
-/**
-* @modulo PlainEditor
-* @autor  Rodrigo Monteiro 1313493
-* @descrição Editor de textos dirigido a estrutura de dados
-* @versão
+/*
+* modulo: PlainEditor
+* autor:  Rodrigo Monteiro 1313493
+* descrição: Editor de textos dirigido a estrutura de dados
+* versão:
 *   12/2014 1.0 Módulo inicial
 *   12/2014 1.1 Módulo finalizado
 **/

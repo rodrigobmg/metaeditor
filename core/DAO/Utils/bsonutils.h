@@ -11,7 +11,6 @@ class BSONUtils
 {
 private:
     static const bson_value_t* getField(const bson_t *bson, const char* field_name);
-    static bson_iter_t* getIter(const bson_t* bson, const char* field_name);
 
 public:
     static char* getString(const bson_t* bson, const char* field_name);

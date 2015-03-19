@@ -1,14 +1,14 @@
 #ifndef LUACOMPILER_H
 #define LUACOMPILER_H
 
-/**
-* @modulo LuaCompiler
-* @autor  Rodrigo Monteiro 1313493
-* @descrição Módulo responsável pela compilação de scripts Lua
-* @versão
+/*
+* class LuaCompiler
+* author  Rodrigo Monteiro 1313493
+* brief Módulo responsável pela compilação de scripts Lua
+* version
 *   10/2014 1.0 Módulo inicial
 *   11/2014 1.1 Módulo finalizado
-**/
+*/
 
 #include "lua.hpp"
 #include "lauxlib.h"

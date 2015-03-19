@@ -13,22 +13,28 @@ class Object
 {
 public:
     explicit Object();
-    explicit Object(const bson_t* data);
+    //explicit Object(const bson_t* data);
     explicit Object(char* name);
     virtual ~Object();
 
     //Properties
     const char* Name();
     const char* Id();
-    const bson_t* Data();
+    //const bson_t* Data();
     void setName(char* name);
 
     //Utils
-    virtual void wrap();
-    virtual bool unwrap();
+    virtual void wrap(bson_t* data);
+    virtual bool unwrap(const bson_t *data);
 
 protected:
-    bson_t* m_data;
+    ///
+    /// \brief m_data
+    /// Ponteiro para o objeto [BSON](http://bsonspec.org/).
+    /// Este objeto representa o formato utilizado pelo
+    /// banco de dados [Mongo](http://www.mongodb.org)
+    ///
+    //bson_t* m_data;
     char*   m_id;
     char*   m_name;
 };

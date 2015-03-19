@@ -3,23 +3,24 @@
 
 #include <QTextCodec>
 #include <QMessageBox>
-#include <QInputDialog>
 #include <QSplitter>
 #include <QTreeWidget>
+
+//Dialogs
 #include <QDialog>
+#include <QInputDialog>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_editor(nullptr), m_proxy(nullptr), m_luaProcessor(nullptr)
 {
-    //QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-
     ui->setupUi(this);
     setupEditor();
     setCentralWidget(m_editor);
 
     connect(ui->act_goto, SIGNAL(triggered()), this, SLOT(goToLine()));
-    connect(ui->act_runTests, SIGNAL(triggered()), this, SLOT(runTests()));
+    connect(ui->act_installScripts, SIGNAL(triggered()), this, SLOT(installScripts()));
     connect(ui->actionExit, SIGNAL(triggered()), SLOT(close()));
 }
 
@@ -90,10 +91,15 @@ void MainWindow::goToLine()
     }
 }
 
-void MainWindow::runTests()
+void MainWindow::installScripts()
 {
-    std::string script("scripts/talisman.lua");
-    m_luaProcessor->compileScript(script);
-    m_luaProcessor->doBuffer();
-    m_luaProcessor->callFunction("scripts/tests.lua", "run");
+    QString fileName = QFileDialog::getOpenFileName(this, "Escolha o script a ser instalado...", "./scripts/", "*.lua");
+
+    if(fileName.isEmpty() || fileName.isNull())
+    {
+        return;
+    }
+
+    //ToDo
+    //Abre arquivo e joga o binário no banco
 }

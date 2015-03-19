@@ -8,27 +8,6 @@
 //Bson
 #include <bson.h>
 
-//Funções utilitárias usadas nos testes
-static bson_t * createBson(const char* name)
-{
-    bson_t* bson = bson_new();
-
-    ////////////////////////////////
-    if( bson == nullptr )
-    {
-        return nullptr;
-    }
-    ////////////////////////////////
-
-    bson_oid_t oid;
-    bson_oid_init(&oid, NULL);
-
-    BSON_APPEND_OID(bson, "_id", &oid);
-    BSON_APPEND_UTF8(bson, "name", name);
-
-    return bson;
-}
-
 ///
 /// \brief Teste responsável por verificar se a inclusão ao banco
 /// de dados foi executada com sucesso.
@@ -122,8 +101,53 @@ TEST(CoreLib, DatabaseManagerReadFAIL)
         Object* obj = DatabaseManager::instance().read("users", "insertTest1", "test");
         //
         ASSERT_TRUE(obj == nullptr);
+    }
+    catch(DatabaseException& ex)
+    {
+        FAIL() << "Falha de conexão: " << ex.what() << std::endl;
+    }
+}
+
+TEST(CoreLib, DatabaseManagerUpdateOK)
+{
+    try
+    {
+        Object* obj = DatabaseManager::instance().read("users", "insertTest", "test");
         //
-        delete obj;
+        ASSERT_TRUE(obj != nullptr);
+        //
+        obj->setName("updateTest");
+        bool ret = DatabaseManager::instance().update(*obj, "users", "test");
+        //
+        ASSERT_TRUE(ret == true);
+        //
+        obj = DatabaseManager::instance().read("users", "updateTest", "test");
+        //
+        ASSERT_TRUE(obj != nullptr);
+    }
+    catch(DatabaseException& ex)
+    {
+        FAIL() << "Falha de conexão: " << ex.what() << std::endl;
+    }
+}
+
+TEST(CoreLib, DatabaseManagerUpdateFAIL)
+{
+    try
+    {
+        Object* obj = DatabaseManager::instance().read("users", "updateTest", "test");
+        //
+        ASSERT_TRUE(obj != nullptr);
+        //
+        obj->setName("updateTest");
+        bool ret = DatabaseManager::instance().update(*obj, "users", "test");
+        //Objeto já existe no banco
+        ASSERT_TRUE(ret == false);
+        //
+        obj = new Object();
+        ret = DatabaseManager::instance().update(*obj, "users", "test");
+        //Id nulo
+        ASSERT_TRUE(ret == false);
     }
     catch(DatabaseException& ex)
     {
@@ -146,7 +170,7 @@ TEST(CoreLib, DatabaseManagerDestroyOK)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read("users", "insertTest", "test");
+        Object* obj = DatabaseManager::instance().read("users", "updateTest", "test");
         //
         ASSERT_TRUE(obj != nullptr);
         //
@@ -167,7 +191,7 @@ TEST(CoreLib, DatabaseManagerDestroyFAIL)
     try
     {
         char* name = new char[20];
-        strcpy(name, "insertTest");
+        strcpy(name, "updateTest");
         Object o(name);
         //Objeto não existe na base de dados
         bool ret = DatabaseManager::instance().destroy(o, "users", "test");

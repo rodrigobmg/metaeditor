@@ -2,10 +2,10 @@
 #define LUAPROCESSOR_H
 
 /**
-* @modulo LuaProcessor
-* @autor  Rodrigo Monteiro 1313493
-* @descrição Módulo responsável pelo gerenciamento da máquina Lua
-* @versão
+* modulo LuaProcessor
+* autor  Rodrigo Monteiro 1313493
+* descrição Módulo responsável pelo gerenciamento da máquina Lua
+* versão
 *   10/2014 1.0 Módulo inicial
 *   10/2014 1.1 Módulo finalizado
 **/

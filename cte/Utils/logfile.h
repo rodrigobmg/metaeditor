@@ -2,10 +2,10 @@
 #define LOGFILE_H
 
 /**
-* @modulo LogFile
-* @autor  Rodrigo Monteiro 1313493
-* @descrição Utilitário para escrever os logs de execução
-* @versão
+* modulo LogFile
+* autor  Rodrigo Monteiro 1313493
+* descrição Utilitário para escrever os logs de execução
+* versão
 *   12/2014 1.0 Módulo inicial
 *   12/2014 1.1 Módulo finalizado
 **/

@@ -23,7 +23,7 @@
      <x>0</x>
      <y>0</y>
      <width>511</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuA_rquivo">
@@ -37,7 +37,7 @@
      <string>Operações</string>
     </property>
     <addaction name="act_goto"/>
-    <addaction name="act_runTests"/>
+    <addaction name="act_installScripts"/>
    </widget>
    <addaction name="menuA_rquivo"/>
    <addaction name="menuOpera_es"/>
@@ -71,9 +71,9 @@
     <string>Abrir base de software</string>
    </property>
   </action>
-  <action name="act_runTests">
+  <action name="act_installScripts">
    <property name="text">
-    <string>Rodar Testes Lua</string>
+    <string>Instalar scripts Lua</string>
    </property>
   </action>
   <action name="actionExit">

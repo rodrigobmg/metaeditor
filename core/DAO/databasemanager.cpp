@@ -26,7 +26,6 @@ DatabaseManager::DatabaseManager() :
 
 }
 
-
 ///////////////
 /// \brief DatabaseManager
 ///
@@ -101,9 +100,9 @@ Object* DatabaseManager::read(const char *collection_name, const char* object_na
 
     while( mongoc_cursor_next(cursor, &doc) )
     {
-        obj = new Object(doc);
+        obj = new Object();
 
-        if( obj->unwrap() == true )
+        if( obj->unwrap(doc) == true )
         {
             if( strcmp(obj->Name(), object_name) == 0 )
             {
@@ -127,15 +126,18 @@ bool DatabaseManager::create(Object& o, const char *collection_name, const char 
 
     mongoc_collection_t* collection = mongoc_client_get_collection (m_client, database_name, collection_name);
 
-    if(exists(o.Name(), collection) == true)
+    if(findName(o.Name(), collection) == true)
     {
         mongoc_collection_destroy (collection);
         return false;
     }
 
     bson_error_t error;
-    const bson_t* b = o.Data();
-    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, b, NULL, &error))
+    bson_t b = BSON_INITIALIZER;
+
+    o.wrap(&b);
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, &b, NULL, &error))
     {
         std::cout << error.message << std::endl;
         mongoc_collection_destroy (collection);
@@ -156,14 +158,17 @@ bool DatabaseManager::destroy(Object& o, const char *collection_name, const char
 
     mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name, collection_name);
 
-    if(!exists(o.Name(), collection))
+    if(!findName(o.Name(), collection))
     {
+        mongoc_collection_destroy(collection);
         return false;
     }
 
-    const bson_t* b = o.Data();
+    bson_t b = BSON_INITIALIZER;
+    o.wrap(&b);
+
     bson_error_t error;
-    if (!mongoc_collection_remove (collection, MONGOC_REMOVE_NONE, b, NULL, &error))
+    if (!mongoc_collection_remove (collection, MONGOC_REMOVE_NONE, &b, NULL, &error))
     {
         std::cout << "Erro ao remover: " << o.Name();
         std::cout << std::endl << "mensagem: " << error.message << std::endl;
@@ -185,16 +190,39 @@ bool DatabaseManager::update(Object& o, const char* collection_name, const char*
 
     mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name, collection_name);
 
-    if(!exists(o.Name(), collection))
+    //Caso o nome já exista ou o objeto não possui um ID válido
+    //retorna falso
+    if(findName(o.Name(), collection) || o.Id() == nullptr)
     {
+        mongoc_collection_destroy(collection);
         return false;
     }
 
-    const bson_t* b = o.Data();
-    const bson_t* query = BCON_NEW("name", o.Name());
+    //Se o objeto possui um ID válido, mas ele não foi encontrado no
+    // banco de dados, retorna falso
+    bson_oid_t oid;
+    bson_oid_init_from_string(&oid, o.Id());
+
+    if(!findOID(&oid, collection))
+    {
+        mongoc_collection_destroy(collection);
+        return false;
+    }
+
+    //Busca por ID
+    bson_t query = BSON_INITIALIZER;
+    BSON_APPEND_OID(&query, "_id", &oid);
+
+    bson_t update = BSON_INITIALIZER;
+    bson_t set = BSON_INITIALIZER;
+
+    bson_append_document_begin(&update, "$set", 4, &set);
+    o.wrap(&set);
+    bson_append_document_end(&update, &set);
+
     bson_error_t error;
 
-    if (!mongoc_collection_update (collection, MONGOC_UPDATE_NONE, query, b, NULL, &error))
+    if (!mongoc_collection_update (collection, MONGOC_UPDATE_NONE, &query, &update, NULL, &error))
     {
         std::cout << "Erro ao atualizar: " << o.Name();
         std::cout << std::endl << "mensagem: " << error.message << std::endl;
@@ -206,23 +234,31 @@ bool DatabaseManager::update(Object& o, const char* collection_name, const char*
     return true;
 }
 
-bool DatabaseManager::exists(const char *object_name, mongoc_collection_t* collection)
+bool DatabaseManager::findName(const char *object_name, mongoc_collection_t* collection)
 {
     bson_t* query = BCON_NEW ("$query", "{", "name", BCON_UTF8(object_name), "}");
+    return findQuery(query, collection);
+}
+
+bool DatabaseManager::findOID(bson_oid_t* id, mongoc_collection_t *collection)
+{
+    bson_t* query = BCON_NEW ("$query", "{", "_id", BCON_OID(id), "}");
+    return findQuery(query, collection);
+}
+
+bool DatabaseManager::findQuery(bson_t *query, mongoc_collection_t *collection)
+{
+    bool result = false;
+
     mongoc_cursor_t *cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
     const bson_t* b;
+
     if(mongoc_cursor_next(cursor, &b))
     {
-        const char * retName = BSONUtils::getString(b,"name");
-        if( strcmp(retName, object_name) == 0)
-        {
-            mongoc_cursor_destroy(cursor);
-            bson_destroy(query);
-            return true;
-        }
+        result = true;
     }
 
     mongoc_cursor_destroy(cursor);
     bson_destroy (query);
-    return false;
+    return result;
 }

@@ -28,6 +28,8 @@ private:
     explicit DatabaseManager();
     ~DatabaseManager();
 
+    bool findQuery(bson_t *query, mongoc_collection_t* collection);
+
 public:
     static DatabaseManager& instance();
     void tryReconnection();
@@ -37,7 +39,8 @@ public:
     bool destroy(Object& o, const char* collection_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
     bool update(Object& o, const char* collection_name, const char* database_name=DefaultDatabaseName) throw (DatabaseException);
 
-    bool exists(const char* object_name, mongoc_collection_t *collection);
+    bool findName(const char* object_name, mongoc_collection_t *collection);
+    bool findOID(bson_oid_t *id, mongoc_collection_t* collection);
 
 private:
     mongo_client* m_client;

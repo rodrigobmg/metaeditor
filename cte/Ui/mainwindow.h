@@ -2,10 +2,10 @@
 #define MAINWINDOW_H
 
 /**
-* @modulo MainWindow
-* @autor  Rodrigo Monteiro 1313493
-* @descrição Módulo responsável gerenciar a janela principal da aplicação
-* @versão
+* modulo MainWindow
+* autor  Rodrigo Monteiro 1313493
+* descrição Módulo responsável gerenciar a janela principal da aplicação
+* versão
 *   12/2014 1.0 Módulo inicial
 *   12/2014 1.1 Módulo finalizado
 **/
@@ -37,9 +37,8 @@ protected:
 
 private slots:
     void goToLine();
-#ifdef __LOG_TEST__
-    void runTests();
-#endif
+    void installScripts();
+
 private:
     Ui::MainWindow *ui;
     PlainEditor* m_editor;

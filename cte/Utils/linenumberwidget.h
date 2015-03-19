@@ -2,10 +2,10 @@
 #define LINENUMBERWIDGET_H
 
 /**
-* @modulo LineNumberWidget
-* @autor  Rodrigo Monteiro 1313493
-* @descrição Utilitário para exibição das linhas contidas no editor
-* @versão
+* modulo LineNumberWidget
+* autor  Rodrigo Monteiro 1313493
+* descrição Utilitário para exibição das linhas contidas no editor
+* versão
 *   12/2014 1.0 Módulo inicial
 *   12/2014 1.1 Módulo finalizado
 **/

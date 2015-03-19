@@ -1,11 +1,11 @@
 #ifndef DATAMAN_H
 #define DATAMAN_H
 
-/**
-* @modulo DataManager
-* @autor  Rodrigo Monteiro 1313493
-* @descrição Módulo responsável pela gerência da estrutura de dados do editor de textos
-* @versão
+/*
+* modulo DataManager
+* autor  Rodrigo Monteiro 1313493
+* descrição Módulo responsável pela gerência da estrutura de dados do editor de textos
+* versão
 *   12/2014 1.0 Módulo inicial
 *   12/2014 1.1 Módulo finalizado
 **/
@@ -28,6 +28,9 @@ enum FieldType
     MaxFieldType
 };
 
+/**
+ * @brief The LineObject struct
+ */
 struct LineObject
 {
     /**
@@ -74,7 +77,7 @@ struct LineField
      * @param start the initial column
      * @param end the size of object
      */
-    LineField(int pos, FieldType m_type, unsigned int m_start, unsigned int m_end);
+    LineField(int pos, FieldType type, unsigned int m_start, unsigned int m_end);
     /**
      * @brief atRange Check if the text cursor is inside of object
      * @param col the column
