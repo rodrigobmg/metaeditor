@@ -11,6 +11,7 @@
 **/
 
 #include <string>
+#include <vector>
 #include "lua.hpp"
 #include "lobject.h"
 
@@ -55,11 +56,25 @@ public:
      */
     void doBuffer();
     /**
+     * @brief doBuffer Put the script on the stack to be executed
+     * @param buffer The buffer from a compiled script
+     */
+    void doBuffer(const char* buffer);
+    /**
      * @brief state Pointer to current Lua machine
      * @return the pointer to Lua machine
      */
     lua_State* state();
-
+    /**
+     * @brief data binary data of compiled script
+     * @return const pointer to compiled script
+     */
+    const char* data();
+    /**
+     * @brief dataSize
+     * @return the size of compiled lua script
+     */
+    size_t dataSize();
 private:
 
     /**

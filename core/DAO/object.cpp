@@ -24,20 +24,6 @@ Object::Object(char *name) :
 
 Object::~Object()
 {
-    /*if( m_data != nullptr)
-    {
-        bson_destroy(m_data);
-    }*/
-
-    if( m_name != nullptr )
-    {
-        delete m_name;
-    }
-
-    if( m_id != nullptr )
-    {
-        delete m_id;
-    }
 }
 
 void Object::wrap(bson_t *data)

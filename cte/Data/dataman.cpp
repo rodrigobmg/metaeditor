@@ -7,21 +7,19 @@
 static LogFile logFile("DataManager", "LogTest", true);
 #endif
 
-LineField::LineField() :
+Field::Field() :
     m_position(0), m_type(Text), m_start(0), m_end(0)
 {
-
+    //empty
 }
 
-LineField::LineField(int pos, FieldType type, unsigned int start, unsigned int end)
+Field::Field(int pos, FieldType type, unsigned int start, unsigned int end) :
+    m_position(pos), m_type(type), m_start(start), m_end(end)
 {
-    this->m_position = pos;
-    this->m_type = type;
-    this->m_start = start;
-    this->m_end = end;
+    //empty
 }
 
-bool LineField::atRange(unsigned int col)
+bool Field::atRange(unsigned int col)
 {
     return col >= m_start && col <= m_end;
 }
@@ -48,38 +46,38 @@ inline size_t Utf8StringSize(const std::string& str)  {
     return res;
 }
 
-void LineField::appendInfo(std::string c, unsigned int pos)
+void Field::appendInfo(std::string c, unsigned int pos)
 {
     m_info.insert( (pos-m_start), c);
-    std::cout << "appendInfo --> String[" << c.c_str() << "] Size[" << c.size() << "]" << std::endl;
+    //std::cout << "appendInfo --> String[" << c.c_str() << "] Size[" << c.size() << "]" << std::endl;
     m_end += Utf8StringSize(c);
 }
 
-void LineField::appendChar(char c, unsigned int pos)
+void Field::appendChar(char c, unsigned int pos)
 {
     m_info.insert( (pos-m_start) , 1, c);
     m_end++;
 }
 
-void LineField::removeAt(unsigned int pos)
+void Field::removeAt(unsigned int pos)
 {
     m_info.erase( (pos-m_start), 1);
     m_end--;
 }
 
-void LineField::shiftRight()
+void Field::shiftRight()
 {
     m_start++;
     m_end++;
 }
 
-void LineField::shiftLeft()
+void Field::shiftLeft()
 {
     m_start--;
     m_end--;
 }
 
-LineField* Line::searchAtCol(unsigned int col)
+Field* Line::searchAtCol(unsigned int col)
 {
     for(auto d : m_fields)
     {
@@ -168,7 +166,7 @@ void LineManager::removeCharacter(unsigned int col, unsigned int line)
 
         Line* ptr = m_lines.at(line);
 
-        LineField* type = ptr->searchAtCol(col);
+        Field* type = ptr->searchAtCol(col);
 
         if( type != nullptr )
         {
@@ -176,7 +174,7 @@ void LineManager::removeCharacter(unsigned int col, unsigned int line)
 
             for( unsigned int i = type->m_position + 1; i < ptr->m_fields.size(); i++ )
             {
-                LineField* o = ptr->m_fields.at(i);
+                Field* o = ptr->m_fields.at(i);
                 o->shiftLeft();
             }
         }
@@ -214,11 +212,11 @@ void LineManager::addTitle(const char* str, unsigned int col, unsigned int line)
 #endif
     }
 
-    LineField* type = ptr->searchAtCol(col);
+    Field* type = ptr->searchAtCol(col);
 
     if( type == nullptr )
     {
-        type = new LineField((unsigned int)ptr->m_fields.size(), Title, col, col);
+        type = new Field((unsigned int)ptr->m_fields.size(), Title, col, col);
         type->appendInfo(str, col);
 #ifdef __LOG_TEST__
         logFile.write("[DataMananager] Appending new string [%s] with size [%d] at [%d] in line [%d]", str, type->m_end, col, line);
@@ -247,11 +245,11 @@ void LineManager::addName(const char* str, unsigned int col, unsigned int line)
 #endif
     }
 
-    LineField* type = ptr->searchAtCol(col);
+    Field* type = ptr->searchAtCol(col);
 
     if( type == nullptr )
     {
-        type = new LineField((unsigned int)ptr->m_fields.size(), Name, col, col);
+        type = new Field((unsigned int)ptr->m_fields.size(), Name, col, col);
         type->appendInfo(str, col);
 #ifdef __LOG_TEST__
         logFile.write("[DataMananager] Appending new string [%s] with size [%d] at [%d] in line [%d]", str, type->m_end, col, line);
@@ -271,7 +269,7 @@ bool LineManager::isEditable(unsigned int col, unsigned int line)
     {
         std::cout << "m_lines.size() " << m_lines.size() << std::endl;
         Line* ptr = m_lines.at(line);
-        LineField* type = ptr->searchAtCol(col);
+        Field* type = ptr->searchAtCol(col);
 
         if(type != nullptr)
         {
@@ -300,7 +298,7 @@ std::string LineManager::type(unsigned int col, unsigned int line) throw(std::ex
     try
     {
         Line* ptr = m_lines.at(line);
-        LineField* type = ptr->searchAtCol(col);
+        Field* type = ptr->searchAtCol(col);
 
         if(type != nullptr)
         {
@@ -341,7 +339,7 @@ bool LineManager::eventFilter(unsigned int col, unsigned int line, char characte
     try
     {
         ptr = m_lines.at(line);
-        LineField* type = ptr->searchAtCol(col);
+        Field* type = ptr->searchAtCol(col);
 
         if( type != nullptr )
         {
@@ -356,7 +354,7 @@ bool LineManager::eventFilter(unsigned int col, unsigned int line, char characte
 
             for( unsigned int i = type->m_position + 1; i < ptr->m_fields.size(); i++ )
             {
-                LineField* o = ptr->m_fields.at(i);
+                Field* o = ptr->m_fields.at(i);
                 o->shiftRight();
             }
 
@@ -376,7 +374,7 @@ bool LineManager::eventFilter(unsigned int col, unsigned int line, char characte
         ptr->m_number = line;
     }
 
-    LineField* type = new LineField(position, Text, col, col);
+    Field* type = new Field(position, Text, col, col);
 #ifdef __LOG_TEST__
     logFile.write("[DataMananager] Appending new character [%c] at [%d] in line [%d]", character, col, line);
 #endif

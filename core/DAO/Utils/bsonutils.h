@@ -16,7 +16,7 @@ public:
     static char* getString(const bson_t* bson, const char* field_name);
     static int getInt(const bson_t* bson, const char* field_name);
     static double getDouble(const bson_t *bson, const char* field_name);
-    static char* getArray(const bson_t* bson, const char* field_name);
+    static bool getArray(const bson_t* bson, const char* field_name, char* data, size_t& size);
     static bool getOID(const bson_t* bson, char* ret_oid);
 };
 

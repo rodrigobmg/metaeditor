@@ -24,7 +24,8 @@ set(metaeditor_SOURCES
         cte/Utils/logfile.cpp
 ##Objetos utilizados pelo editor
         cte/Objects/softwarebase.cpp
-        cte/Objects/user.cpp)
+        cte/Objects/user.cpp
+        cte/Objects/script.cpp)
 
 ##Especificação dos cabeçalhos do projeto
 set(metaeditor_HEADERS
@@ -35,7 +36,8 @@ set(metaeditor_HEADERS
         cte/Utils/logfile.h
 ##Objetos utilizados pelo editor
         cte/Objects/softwarebase.h
-        cte/Objects/user.h)
+        cte/Objects/user.h
+        cte/Objects/script.h)
 
 set(metaeditor_FORMS
         cte/Forms/mainwindow.ui)

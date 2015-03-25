@@ -142,8 +142,11 @@ void PlainEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     }
 }
 
+#include "ui/mainwindow.h"
 bool PlainEditor::eventFilter(QObject * obj, QEvent * event)
 {
+    //((MainWindow*)obj)->updateStatusBar();
+
     if( this->m_dataman == nullptr ) return true;
 
     if (event->type() == QEvent::KeyPress)
@@ -325,10 +328,14 @@ int PlainEditor::lineCount()
 
 int PlainEditor::columnNumber()
 {
-    int columnNumber = this->textCursor().columnNumber();
-    return columnNumber < 0 ? 0 : columnNumber;
-}
+    if(this->isVisible())
+    {
+        int columnNumber = this->textCursor().columnNumber();
+        return columnNumber < 0 ? 0 : columnNumber;
+    }
 
+    return 0;
+}
 bool PlainEditor::isEditable()
 {
     if( m_dataman != nullptr )

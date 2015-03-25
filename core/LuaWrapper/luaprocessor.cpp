@@ -54,16 +54,21 @@ LuaProcessor::LuaProcessor()
     luaL_openlibs(m_state);
     m_compiler = new LuaCompiler;
     m_data = new std::string;
-
 }
 
 LuaProcessor::~LuaProcessor()
 {
     lua_close(m_state);
     if(m_data)
+    {
+        m_data->clear();
         delete m_data;
+    }
+
     if(m_compiler)
+    {
         delete m_compiler;
+    }
 }
 
 void LuaProcessor::callFunction(char* script, char* functionName, int numArgs, int numRet)
@@ -111,13 +116,32 @@ bool LuaProcessor::compileScript(std::string &scriptPath)
         return false;
     }
 
+    std::cout << "m_size = " << m_data->size() << std::endl;
+
     lua_unlock(m_state);
     return true;
 }
 
 void LuaProcessor::doBuffer()
 {
-    int error = luaL_dobuffer(m_state, m_data->c_str(), m_data->size(), (char*)"dummy");
+    int error = luaL_dobuffer(m_state, m_data->data(), m_data->size(), (char*)"dummy");
+
+    if( error )
+    {
+        lua_pop(m_state, 1);
+    }
+}
+
+void LuaProcessor::doBuffer(const char* buffer)
+{
+    if( !m_data->empty() )
+    {
+        m_data->clear();
+    }
+
+    m_data->append(buffer);
+
+    int error = luaL_dobuffer(m_state, buffer, strlen(buffer), (char*)"dummy");
 
     if( error )
     {
@@ -128,6 +152,16 @@ void LuaProcessor::doBuffer()
 lua_State* LuaProcessor::state()
 {
     return m_state;
+}
+
+const char* LuaProcessor::data()
+{
+    return m_data->data();
+}
+
+size_t LuaProcessor::dataSize()
+{
+    return m_data->size();
 }
 
 void LuaProcessor::registerFunction(std::string &fname, lua_CFunction fn)

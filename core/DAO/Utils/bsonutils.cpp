@@ -54,9 +54,22 @@ double BSONUtils::getDouble(const bson_t *bson, const char *field_name)
     return -1.0;
 }
 
-char* BSONUtils::getArray(const bson_t *bson, const char *field_name)
+#include <iostream>
+bool BSONUtils::getArray(const bson_t *bson, const char *field_name, char* data, size_t& size)
 {
-    return "";
+    const bson_value_t* ret;
+    if( ( ret = BSONUtils::getField(bson, field_name) ) != nullptr )
+    {
+        if(ret->value_type == BSON_TYPE_BINARY)
+        {
+            size = ret->value.v_binary.data_len;
+            data = new char[size];
+            memcpy(data, ret->value.v_binary.data, size);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool BSONUtils::getOID(const bson_t *bson, char* ret_oid)

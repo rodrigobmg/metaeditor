@@ -29,21 +29,10 @@ enum FieldType
 };
 
 /**
- * @brief The LineObject struct
- */
-struct LineObject
-{
-    /**
-     * @brief To be used at next version
-     */
-    int id;
-};
-
-/**
  * @brief Representation of an object.
  * The object has a position at line and one type
  */
-struct LineField
+struct Field
 {
     /**
      * @brief object position at line
@@ -69,7 +58,7 @@ struct LineField
     /**
      * @brief default ctor
      */
-    LineField();
+    Field();
     /**
      * @brief Specialized ctor
      * @param pos the position of object
@@ -77,7 +66,7 @@ struct LineField
      * @param start the initial column
      * @param end the size of object
      */
-    LineField(int pos, FieldType type, unsigned int m_start, unsigned int m_end);
+    Field(int pos, FieldType type, unsigned int m_start, unsigned int m_end);
     /**
      * @brief atRange Check if the text cursor is inside of object
      * @param col the column
@@ -123,14 +112,14 @@ struct Line
     /**
      * @brief Vector of objects contained at line
      */
-    std::vector<LineField*> m_fields;
+    std::vector<Field*> m_fields;
 
     /**
      * @brief searchAtCol search the object for the given column
      * @param col the column
      * @return the object if it exists, otherwise returns nullptr
      */
-    LineField* searchAtCol(unsigned int col);
+    Field* searchAtCol(unsigned int col);
     /**
      * @brief dump dump the lines
      * @return the lines dumped

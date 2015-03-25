@@ -10,15 +10,10 @@ int main(int argc, char *argv[])
     try
     {
         DatabaseManager::instance().connect();
-
-        Object* obj = DatabaseManager::instance().read("users", "rodrigo", "test");
-
-
         QApplication application(argc, argv);
         MainWindow window;
-        window.show();
 
-        delete obj;
+        window.show();
         ret = application.exec();
     }
     catch(std::exception& ex)

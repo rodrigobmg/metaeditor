@@ -10,10 +10,14 @@
 *   12/2014 1.1 Módulo finalizado
 **/
 
+//QT
 #include <QMainWindow>
-#include "../plaineditor.h"
+#include <QPainter>
+//CoreLib
 #include <Proxies/editorproxy.h>
 #include <LuaWrapper/luaprocessor.h>
+//CTE
+#include "../plaineditor.h"
 
 namespace Ui {
 class MainWindow;
@@ -40,10 +44,10 @@ private slots:
     void installScripts();
 
 private:
-    Ui::MainWindow *ui;
-    PlainEditor* m_editor;
-    EditorProxy* m_proxy;
-    LuaProcessor* m_luaProcessor;
+    Ui::MainWindow* ui;
+    PlainEditor*    m_editor;
+    EditorProxy*    m_proxy;
+    LuaProcessor*   m_luaProcessor;
 };
 
 #endif // MAINWINDOW_H

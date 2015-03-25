@@ -73,7 +73,7 @@ TEST(CoreLib, DatabaseManagerReadOK)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read("users", "insertTest", "test");
+        Object* obj = DatabaseManager::instance().read<Object>("users", "insertTest", "test");
         //
         ASSERT_TRUE(obj != nullptr);
     }
@@ -98,7 +98,7 @@ TEST(CoreLib, DatabaseManagerReadFAIL)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read("users", "insertTest1", "test");
+        Object* obj = DatabaseManager::instance().read<Object>("users", "insertTest1", "test");
         //
         ASSERT_TRUE(obj == nullptr);
     }
@@ -108,11 +108,25 @@ TEST(CoreLib, DatabaseManagerReadFAIL)
     }
 }
 
+///
+/// \brief Teste responsável por confirmar que um objeto é atualizado
+/// com sucesso bastando para isso que o ObjectID exista na base de
+/// dados.
+/// O teste falha em 4 ocasiões:
+/// 1) Conexão não existente - Caso não haja uma conexão com o
+/// banco de dados uma excessão será levantada.
+/// 2) Ponteiro para objeto igual a nulo - Este erro ocorre caso
+/// o objeto a ser atualizado não exista na base de dados
+/// 3) Falha ao atualizar o nome - Pode ocorrer caso o ObjectID informado
+/// não exista no banco de dados
+/// 4) Falha ao recuperar objeto atualizado - Este erro não deve acontecer
+/// caso o banco de dados esteja consistente.
+///
 TEST(CoreLib, DatabaseManagerUpdateOK)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read("users", "insertTest", "test");
+        Object* obj = DatabaseManager::instance().read<Object>("users", "insertTest", "test");
         //
         ASSERT_TRUE(obj != nullptr);
         //
@@ -121,7 +135,7 @@ TEST(CoreLib, DatabaseManagerUpdateOK)
         //
         ASSERT_TRUE(ret == true);
         //
-        obj = DatabaseManager::instance().read("users", "updateTest", "test");
+        obj = DatabaseManager::instance().read<Object>("users", "updateTest", "test");
         //
         ASSERT_TRUE(obj != nullptr);
     }
@@ -131,11 +145,20 @@ TEST(CoreLib, DatabaseManagerUpdateOK)
     }
 }
 
+///
+/// \brief Teste responsável por confirmar que um objeto NÃO é atualizado
+/// caso já exista um nome similar na tabela informada
+/// O teste falha em 2 ocasiões:
+/// 1) Conexão não existente - Caso não haja uma conexão com o
+/// banco de dados uma excessão será levantada.
+/// 2) Ponteiro para objeto igual a nulo - Este erro ocorre caso
+/// o objeto a ser atualizado não exista na base de dados
+///
 TEST(CoreLib, DatabaseManagerUpdateFAIL)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read("users", "updateTest", "test");
+        Object* obj = DatabaseManager::instance().read<Object>("users", "updateTest", "test");
         //
         ASSERT_TRUE(obj != nullptr);
         //
@@ -170,7 +193,7 @@ TEST(CoreLib, DatabaseManagerDestroyOK)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read("users", "updateTest", "test");
+        Object* obj = DatabaseManager::instance().read<Object>("users", "updateTest", "test");
         //
         ASSERT_TRUE(obj != nullptr);
         //
@@ -204,12 +227,7 @@ TEST(CoreLib, DatabaseManagerDestroyFAIL)
     }
 }
 
-///////////////
-/// \brief main
-/// \param argc
-/// \param argv
-/// \return
-///
+
 int main(int argc, char** argv)
 {
     try

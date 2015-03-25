@@ -11,6 +11,13 @@
 #include <QInputDialog>
 #include <QFileDialog>
 
+//Painter
+#include <QPainter>
+
+//Objects
+#include <DAO/databasemanager.h>
+#include "../Objects/script.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_editor(nullptr), m_proxy(nullptr), m_luaProcessor(nullptr)
@@ -27,9 +34,14 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     if( m_editor )
+    {
         delete m_editor;
+        m_editor = nullptr;
+    }
+
     if( m_proxy )
         delete m_proxy;
+
     if( m_luaProcessor )
         delete m_luaProcessor;
 }
@@ -57,7 +69,8 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * event)
     {
         //Update relevant information
         updateStatusBar();
-        return m_editor->eventFilter(obj, event);
+        return m_editor->eventFilter(this, event);
+
     }
 
     return QObject::eventFilter(obj, event);
@@ -93,13 +106,69 @@ void MainWindow::goToLine()
 
 void MainWindow::installScripts()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, "Escolha o script a ser instalado...", "./scripts/", "*.lua");
+    std::string fullpath = QFileDialog::getOpenFileName(this, "Escolha o script a ser instalado...", "./scripts/", "*.lua").toStdString();
 
-    if(fileName.isEmpty() || fileName.isNull())
+    if(fullpath.empty())
     {
         return;
     }
 
-    //ToDo
-    //Abre arquivo e joga o binário no banco
+    try
+    {
+        int slash = fullpath.find_last_of("/") + 1;
+        std::string filename = fullpath.substr(slash, fullpath.size());
+
+        Script* script = DatabaseManager::instance().read<Script>("BCO", filename.data());
+
+        if(script != nullptr)
+        {
+            QMessageBox::StandardButton reply = QMessageBox::question(this,
+                                                                      "Atenção",
+                                                                      "Script informado já existe no banco de dados. Deseja atualizá-lo?",
+                                                                      QMessageBox::Yes|QMessageBox::No);
+            if(reply == QMessageBox::No)
+            {
+                delete script;
+                return;
+            }
+        }
+
+        if( m_luaProcessor->compileScript(fullpath) == true )
+        {
+            m_luaProcessor->doBuffer();
+
+            if( script != nullptr )
+            {
+                script->setBinaryData((char*)m_luaProcessor->data(), m_luaProcessor->dataSize());
+
+                if( !DatabaseManager::instance().update(*script, "BCO") == true )
+                {
+                    QMessageBox::information(this, "Erro", "Não foi possível atualizar o script no banco de dados.");
+                    return;
+                }
+
+                QMessageBox::information(this, "Sucesso", "Script atualizado com sucesso.");
+            }
+            else
+            {
+                script = new Script((char*)filename.data(), (char*)m_luaProcessor->data(), m_luaProcessor->dataSize());
+
+                if( !DatabaseManager::instance().create(*script, "BCO") == true )
+                {
+                    QMessageBox::information(this, "Erro", "Não foi possível salvar script no banco de dados.");
+                    return;
+                }
+
+                QMessageBox::information(this, "Sucesso", "Script instalado com sucesso.");
+            }
+        }
+        else
+        {
+            QMessageBox::critical(this, "Erro", "Erro ao compilar script.");
+        }
+    }
+    catch(std::exception& ex)
+    {
+        std::cout << ex.what() << std::endl;
+    }
 }
