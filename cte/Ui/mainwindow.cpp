@@ -39,11 +39,14 @@ MainWindow::~MainWindow()
         m_editor = nullptr;
     }
 
-    if( m_proxy )
-        delete m_proxy;
+    //if( m_proxy )
+        //delete m_proxy;
 
     if( m_luaProcessor )
+    {
+        //Luna<EditorProxy>::gc_obj(m_luaProcessor->state());
         delete m_luaProcessor;
+    }
 }
 
 void MainWindow::setupEditor()

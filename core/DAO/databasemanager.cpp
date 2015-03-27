@@ -103,6 +103,8 @@ bool DatabaseManager::create(Object& o, const char *collection_name, const char 
 
     o.wrap(&b);
 
+    std::cout << "Create: " << bson_as_json(&b, NULL) << std::endl;
+
     if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, &b, NULL, &error))
     {
         std::cout << error.message << std::endl;
@@ -185,6 +187,8 @@ bool DatabaseManager::update(Object& o, const char* collection_name, const char*
     bson_append_document_begin(&update, "$set", 4, &set);
     o.wrap(&set);
     bson_append_document_end(&update, &set);
+
+    std::cout << "Update: " << bson_as_json(&update, NULL) << std::endl;
 
     bson_error_t error;
 

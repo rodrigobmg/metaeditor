@@ -33,7 +33,8 @@ bool Script::unwrap(const bson_t *data)
 {
     if( Object::unwrap(data) == true )
     {
-       return utils::getArray(data, "binaryData", m_binaryData, m_dataSize);
+       m_binaryData = utils::getArray(data, "binaryData", m_dataSize);
+       return m_binaryData != nullptr;
     }
 
     return false;
