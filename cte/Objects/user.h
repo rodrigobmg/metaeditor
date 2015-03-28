@@ -22,7 +22,7 @@ class User : public Object
 {
 public:
     explicit User();
-    explicit User(char* name);
+    explicit User(std::string& name);
 
 private:
     UserRole m_role;

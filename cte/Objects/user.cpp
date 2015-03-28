@@ -5,7 +5,7 @@ User::User()
 
 }
 
-User::User(char *name)
+User::User(std::string& name)
 {
-    m_name = name;
+    setName(name);
 }

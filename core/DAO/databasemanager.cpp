@@ -82,7 +82,7 @@ void DatabaseManager::connect(const char *ip, uint16_t port) throw (DatabaseExce
     bson_destroy (command);
 }
 
-bool DatabaseManager::create(Object& o, const char *collection_name, const char *database_name) throw(DatabaseException)
+bool DatabaseManager::create(Object& o, const std::string& collection_name, const std::string& database_name) throw(DatabaseException)
 {
     if(m_client == nullptr)
     {
@@ -90,7 +90,7 @@ bool DatabaseManager::create(Object& o, const char *collection_name, const char 
         tryReconnection();
     }
 
-    mongoc_collection_t* collection = mongoc_client_get_collection (m_client, database_name, collection_name);
+    mongoc_collection_t* collection = mongoc_client_get_collection (m_client, database_name.data(), collection_name.data());
 
     if(findName(o.Name(), collection) == true)
     {
@@ -103,8 +103,6 @@ bool DatabaseManager::create(Object& o, const char *collection_name, const char 
 
     o.wrap(&b);
 
-    std::cout << "Create: " << bson_as_json(&b, NULL) << std::endl;
-
     if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, &b, NULL, &error))
     {
         std::cout << error.message << std::endl;
@@ -116,7 +114,7 @@ bool DatabaseManager::create(Object& o, const char *collection_name, const char 
     return true;
 }
 
-bool DatabaseManager::destroy(Object& o, const char *collection_name, const char *database_name) throw (DatabaseException)
+bool DatabaseManager::destroy(Object& o, const std::string& collection_name, const std::string& database_name) throw (DatabaseException)
 {
     if(m_client == nullptr)
     {
@@ -124,7 +122,7 @@ bool DatabaseManager::destroy(Object& o, const char *collection_name, const char
         tryReconnection();
     }
 
-    mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name, collection_name);
+    mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name.data(), collection_name.data());
 
     if(!findName(o.Name(), collection))
     {
@@ -148,7 +146,7 @@ bool DatabaseManager::destroy(Object& o, const char *collection_name, const char
     return true;
 }
 
-bool DatabaseManager::update(Object& o, const char* collection_name, const char* database_name) throw (DatabaseException)
+bool DatabaseManager::update(Object& o, const std::string& collection_name, const std::string& database_name) throw (DatabaseException)
 {
     if(m_client == nullptr)
     {
@@ -156,22 +154,11 @@ bool DatabaseManager::update(Object& o, const char* collection_name, const char*
         tryReconnection();
     }
 
-    mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name, collection_name);
-
-    //Caso o nome já exista ou o objeto não possui um ID válido
-    //retorna falso
-    if(findName(o.Name(), collection) || o.Id() == nullptr)
-    {
-        mongoc_collection_destroy(collection);
-        return false;
-    }
+    mongoc_collection_t* collection = mongoc_client_get_collection(m_client, database_name.data(), collection_name.data());
 
     //Se o objeto possui um ID válido, mas ele não foi encontrado no
     // banco de dados, retorna falso
-    bson_oid_t oid;
-    bson_oid_init_from_string(&oid, o.Id());
-
-    if(!findOID(&oid, collection))
+    if( !findOID(o.Id(), collection) )
     {
         mongoc_collection_destroy(collection);
         return false;
@@ -179,7 +166,7 @@ bool DatabaseManager::update(Object& o, const char* collection_name, const char*
 
     //Busca por ID
     bson_t query = BSON_INITIALIZER;
-    BSON_APPEND_OID(&query, "_id", &oid);
+    BSON_APPEND_OID(&query, "_id", &o.Id());
 
     bson_t update = BSON_INITIALIZER;
     bson_t set = BSON_INITIALIZER;
@@ -188,13 +175,13 @@ bool DatabaseManager::update(Object& o, const char* collection_name, const char*
     o.wrap(&set);
     bson_append_document_end(&update, &set);
 
-    std::cout << "Update: " << bson_as_json(&update, NULL) << std::endl;
-
     bson_error_t error;
+
+    std::cout << "update: " << bson_as_json(&update, NULL) << std::endl;
 
     if (!mongoc_collection_update (collection, MONGOC_UPDATE_NONE, &query, &update, NULL, &error))
     {
-        std::cout << "Erro ao atualizar: " << o.Name();
+        std::cout << "Erro ao atualizar o objeto: " << o.Name().data();
         std::cout << std::endl << "mensagem: " << error.message << std::endl;
         mongoc_collection_destroy(collection);
         return false;
@@ -204,15 +191,15 @@ bool DatabaseManager::update(Object& o, const char* collection_name, const char*
     return true;
 }
 
-bool DatabaseManager::findName(const char *object_name, mongoc_collection_t* collection)
+bool DatabaseManager::findName(const std::string& object_name, mongoc_collection_t* collection)
 {
-    bson_t* query = BCON_NEW ("$query", "{", "name", BCON_UTF8(object_name), "}");
+    bson_t* query = BCON_NEW ("$query", "{", "name", BCON_UTF8(object_name.data()), "}");
     return findQuery(query, collection);
 }
 
-bool DatabaseManager::findOID(bson_oid_t* id, mongoc_collection_t *collection)
+bool DatabaseManager::findOID(const bson_oid_t& id, mongoc_collection_t *collection)
 {
-    bson_t* query = BCON_NEW ("$query", "{", "_id", BCON_OID(id), "}");
+    bson_t* query = BCON_NEW ("$query", "{", "_id", BCON_OID(&id), "}");
     return findQuery(query, collection);
 }
 

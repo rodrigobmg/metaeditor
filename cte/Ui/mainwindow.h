@@ -42,6 +42,7 @@ protected:
 private slots:
     void goToLine();
     void installScripts();
+    void loadScripts();
 
 private:
     Ui::MainWindow* ui;

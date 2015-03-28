@@ -1,33 +1,31 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include <iostream>
+#include <string>
 #include <bson.h>
-
-///
-/// \brief MaxIdSize
-/// Acima de 300 podem ocorrer problemas
-///
-const int MaxIdSize = 256;
 
 class Object
 {
 public:
     explicit Object();
-    explicit Object(char* name);
+    explicit Object(const std::string& name);
     virtual ~Object();
 
     //Properties
-    const char* Name();
-    const char* Id();
-    void setName(char* name);
+    const std::string Name();
+    const std::string Name() const;
+    const bson_oid_t& Id();
+    void setName(const std::string &name);
 
     //Utils
     virtual void wrap(bson_t* data);
     virtual bool unwrap(const bson_t *data);
 
 private:
-    char*   m_id;
-    char*   m_name;
+    bson_oid_t m_id;
+    std::string m_name;
+    bool m_update;
 };
 
 #endif // OBJECT_H

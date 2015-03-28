@@ -8,6 +8,10 @@
 //Bson
 #include <bson.h>
 
+//Const values
+const std::string insertName = "insertTest";
+const std::string updateName = "updateTest";
+
 ///
 /// \brief Teste responsável por verificar se a inclusão ao banco
 /// de dados foi executada com sucesso.
@@ -21,9 +25,7 @@ TEST(CoreLib, DatabaseManagerCreateOK)
 {
     try
     {
-        char* name = new char[20];
-        strcpy(name, "insertTest");
-        Object o(name);
+        Object o(insertName);
         int ret = DatabaseManager::instance().create(o, "users", "test");
         ASSERT_TRUE(ret == true);
     }
@@ -48,9 +50,7 @@ TEST(CoreLib, DatabaseManagerCreateFAIL)
 {
     try
     {
-        char* name = new char[20];
-        strcpy(name, "insertTest");
-        Object o(name);
+        Object o(insertName);
         int ret = DatabaseManager::instance().create(o, "users", "test");
         ASSERT_TRUE(ret == false);
     }
@@ -73,7 +73,7 @@ TEST(CoreLib, DatabaseManagerReadOK)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read<Object>("users", "insertTest", "test");
+        Object* obj = DatabaseManager::instance().read<Object>("users", insertName, "test");
         //
         ASSERT_TRUE(obj != nullptr);
     }
@@ -126,16 +126,16 @@ TEST(CoreLib, DatabaseManagerUpdateOK)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read<Object>("users", "insertTest", "test");
+        Object* obj = DatabaseManager::instance().read<Object>("users", insertName, "test");
         //
         ASSERT_TRUE(obj != nullptr);
         //
-        obj->setName("updateTest");
+        obj->setName(updateName);
         bool ret = DatabaseManager::instance().update(*obj, "users", "test");
         //
         ASSERT_TRUE(ret == true);
         //
-        obj = DatabaseManager::instance().read<Object>("users", "updateTest", "test");
+        obj = DatabaseManager::instance().read<Object>("users", updateName, "test");
         //
         ASSERT_TRUE(obj != nullptr);
     }
@@ -158,11 +158,11 @@ TEST(CoreLib, DatabaseManagerUpdateFAIL)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read<Object>("users", "updateTest", "test");
+        Object* obj = DatabaseManager::instance().read<Object>("users", updateName, "test");
         //
         ASSERT_TRUE(obj != nullptr);
         //
-        obj->setName("updateTest");
+        obj->setName(updateName);
         bool ret = DatabaseManager::instance().update(*obj, "users", "test");
         //Objeto já existe no banco
         ASSERT_TRUE(ret == false);
@@ -193,7 +193,7 @@ TEST(CoreLib, DatabaseManagerDestroyOK)
 {
     try
     {
-        Object* obj = DatabaseManager::instance().read<Object>("users", "updateTest", "test");
+        Object* obj = DatabaseManager::instance().read<Object>("users", updateName, "test");
         //
         ASSERT_TRUE(obj != nullptr);
         //
@@ -213,9 +213,7 @@ TEST(CoreLib, DatabaseManagerDestroyFAIL)
 {
     try
     {
-        char* name = new char[20];
-        strcpy(name, "updateTest");
-        Object o(name);
+        Object o(updateName);
         //Objeto não existe na base de dados
         bool ret = DatabaseManager::instance().destroy(o, "users", "test");
         //

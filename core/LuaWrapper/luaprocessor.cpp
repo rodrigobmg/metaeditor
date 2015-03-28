@@ -132,7 +132,7 @@ void LuaProcessor::doBuffer()
     }
 }
 
-void LuaProcessor::doBuffer(const char* buffer)
+void LuaProcessor::doBuffer(const char* buffer, size_t size)
 {
     if( !m_data->empty() )
     {
@@ -141,7 +141,7 @@ void LuaProcessor::doBuffer(const char* buffer)
 
     m_data->append(buffer);
 
-    int error = luaL_dobuffer(m_state, buffer, strlen(buffer), (char*)"dummy");
+    int error = luaL_dobuffer(m_state, buffer, size, (char*)"dummy");
 
     if( error )
     {

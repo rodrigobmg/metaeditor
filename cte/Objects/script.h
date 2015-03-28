@@ -8,7 +8,7 @@ class Script : public Object
 {
 public:
     explicit Script();
-    explicit Script(char* name, char* binaryData, size_t dataSize);
+    explicit Script(std::string& name, char* binaryData, size_t dataSize);
     ~Script();
 
     //Implementação de métodos virtuais
@@ -18,11 +18,12 @@ public:
 public:
     void setBinaryData(char* data, size_t size);
     const char* binaryData();
+    const char* binaryData() const;
     size_t size();
+    size_t size() const;
 
 private:
-    char* m_binaryData;
-    size_t m_dataSize;
+    std::string m_binaryData;
 };
 
 #endif // SCRIPT_H

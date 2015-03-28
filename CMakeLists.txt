@@ -20,6 +20,7 @@ set(metaeditor_SOURCES
         cte/plaineditor.cpp
         cte/Data/dataman.cpp
         cte/Ui/mainwindow.cpp
+        cte/Ui/scriptdialog.cpp
         cte/Utils/linenumberwidget.cpp
         cte/Utils/logfile.cpp
 ##Objetos utilizados pelo editor
@@ -32,6 +33,7 @@ set(metaeditor_HEADERS
         cte/plaineditor.h
         cte/Data/dataman.h
         cte/Ui/mainwindow.h
+        cte/Ui/scriptdialog.h
         cte/Utils/linenumberwidget.h
         cte/Utils/logfile.h
 ##Objetos utilizados pelo editor
@@ -40,7 +42,8 @@ set(metaeditor_HEADERS
         cte/Objects/script.h)
 
 set(metaeditor_FORMS
-        cte/Forms/mainwindow.ui)
+        cte/Forms/mainwindow.ui
+        cte/Forms/scriptdialog.ui)
 
 ##QT macros
 qt5_wrap_cpp(metaeditor_HEADERS_MOC  ${metaeditor_HEADERS} )

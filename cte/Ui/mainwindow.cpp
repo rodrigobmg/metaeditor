@@ -18,6 +18,9 @@
 #include <DAO/databasemanager.h>
 #include "../Objects/script.h"
 
+//Dialogs
+#include "scriptdialog.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_editor(nullptr), m_proxy(nullptr), m_luaProcessor(nullptr)
@@ -28,7 +31,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->act_goto, SIGNAL(triggered()), this, SLOT(goToLine()));
     connect(ui->act_installScripts, SIGNAL(triggered()), this, SLOT(installScripts()));
-    connect(ui->actionExit, SIGNAL(triggered()), SLOT(close()));
+    connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(ui->act_loadScripts, SIGNAL(triggered()), this, SLOT(loadScripts()));
 }
 
 MainWindow::~MainWindow()
@@ -121,7 +125,7 @@ void MainWindow::installScripts()
         int slash = fullpath.find_last_of("/") + 1;
         std::string filename = fullpath.substr(slash, fullpath.size());
 
-        Script* script = DatabaseManager::instance().read<Script>("BCO", filename.data());
+        Script* script = DatabaseManager::instance().read<Script>("BCO", filename);
 
         if(script != nullptr)
         {
@@ -144,7 +148,7 @@ void MainWindow::installScripts()
             {
                 script->setBinaryData((char*)m_luaProcessor->data(), m_luaProcessor->dataSize());
 
-                if( !DatabaseManager::instance().update(*script, "BCO") == true )
+                if( !DatabaseManager::instance().update(*script, "BCO") )
                 {
                     QMessageBox::information(this, "Erro", "Não foi possível atualizar o script no banco de dados.");
                     return;
@@ -154,9 +158,9 @@ void MainWindow::installScripts()
             }
             else
             {
-                script = new Script((char*)filename.data(), (char*)m_luaProcessor->data(), m_luaProcessor->dataSize());
+                script = new Script(filename, (char*)m_luaProcessor->data(), m_luaProcessor->dataSize());
 
-                if( !DatabaseManager::instance().create(*script, "BCO") == true )
+                if( !DatabaseManager::instance().create(*script, "BCO") )
                 {
                     QMessageBox::information(this, "Erro", "Não foi possível salvar script no banco de dados.");
                     return;
@@ -168,6 +172,32 @@ void MainWindow::installScripts()
         else
         {
             QMessageBox::critical(this, "Erro", "Erro ao compilar script.");
+        }
+    }
+    catch(std::exception& ex)
+    {
+        std::cout << ex.what() << std::endl;
+    }
+}
+
+void MainWindow::loadScripts()
+{
+    try
+    {
+        std::vector<const Script*> scripts = DatabaseManager::instance().findAll<Script>("BCO");
+
+        if(scripts.empty())
+        {
+            QMessageBox::warning(this, "Erro", "Não existem scripts na base de conhecimento");
+            return;
+        }
+
+        ScriptDialog dialog(scripts, this);
+
+        if(dialog.exec() == QDialog::Accepted)
+        {
+            const Script* script = dialog.selectedScript();
+            m_luaProcessor->doBuffer(script->binaryData(), script->size());
         }
     }
     catch(std::exception& ex)

@@ -3,38 +3,31 @@
 #include <DAO/Utils/bsonutils.h>
 using utils = BSONUtils;
 
-Script::Script() :
-    m_binaryData(nullptr), m_dataSize(0)
+Script::Script()
 {
 }
 
-Script::Script(char *name, char *binaryData, size_t dataSize) :
-    Object(name), m_binaryData(nullptr), m_dataSize(dataSize)
+Script::Script(std::string& name, char *binaryData, size_t dataSize) :
+    Object(name)
 {
-    m_binaryData = new char[dataSize];
-    memcpy(m_binaryData, binaryData, dataSize);
+    m_binaryData.append(binaryData, dataSize);
 }
 
 Script::~Script()
 {
-    if( m_binaryData )
-    {
-        delete m_binaryData;
-    }
 }
 
 void Script::wrap(bson_t* data)
 {
     Object::wrap(data);
-    BSON_APPEND_BINARY(data, "binaryData", BSON_SUBTYPE_BINARY, (const unsigned char*)m_binaryData, m_dataSize);
+    BSON_APPEND_BINARY(data, "binaryData", BSON_SUBTYPE_BINARY, reinterpret_cast<const unsigned char*>(m_binaryData.data()), m_binaryData.size());
 }
 
 bool Script::unwrap(const bson_t *data)
 {
     if( Object::unwrap(data) == true )
     {
-       m_binaryData = utils::getArray(data, "binaryData", m_dataSize);
-       return m_binaryData != nullptr;
+       return utils::getArray(data, "binaryData", m_binaryData);
     }
 
     return false;
@@ -42,21 +35,26 @@ bool Script::unwrap(const bson_t *data)
 
 void Script::setBinaryData(char *data, size_t size)
 {
-    if(m_binaryData)
-    {
-        delete m_binaryData;
-    }
-
-    m_binaryData = new char[size];
-    memcpy(m_binaryData, data, size);
+    m_binaryData.clear();
+    m_binaryData.append(data, size);
 }
 
 const char* Script::binaryData()
 {
-    return m_binaryData;
+    return m_binaryData.data();
+}
+
+const char* Script::binaryData() const
+{
+    return m_binaryData.data();
 }
 
 size_t Script::size()
 {
-    return m_dataSize;
+    return m_binaryData.size();
+}
+
+size_t Script::size() const
+{
+    return m_binaryData.size();
 }

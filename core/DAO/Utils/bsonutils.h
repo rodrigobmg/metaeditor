@@ -10,14 +10,15 @@
 class BSONUtils
 {
 private:
-    static const bson_value_t* getField(const bson_t *bson, const char* field_name);
+    static const bson_value_t* getField(const bson_t *bson, const std::string& field_name);
 
 public:
-    static char* getString(const bson_t* bson, const char* field_name);
-    static int getInt(const bson_t* bson, const char* field_name);
-    static double getDouble(const bson_t *bson, const char* field_name);
-    static char* getArray(const bson_t* bson, const char* field_name, size_t& size);
-    static bool getOID(const bson_t* bson, char* ret_oid);
+    static std::string getString(const bson_t* bson, const std::string& field_name);
+    static int getInt(const bson_t* bson, const std::string& field_name);
+    static double getDouble(const bson_t *bson, const std::string& field_name);
+    static bool getArray(const bson_t* bson, const std::string& field_name, std::string& data);
+    static bool getOID(const bson_t* bson, std::string &ret_oid);
+    static bool getOID(const bson_t* bson, bson_oid_t& oid);
 };
 
 #endif // BSONUTILS_H

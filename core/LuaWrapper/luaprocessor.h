@@ -59,7 +59,7 @@ public:
      * @brief doBuffer Put the script on the stack to be executed
      * @param buffer The buffer from a compiled script
      */
-    void doBuffer(const char* buffer);
+    void doBuffer(const char* buffer, size_t size);
     /**
      * @brief state Pointer to current Lua machine
      * @return the pointer to Lua machine
