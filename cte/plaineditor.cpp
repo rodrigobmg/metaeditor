@@ -262,7 +262,8 @@ void PlainEditor::mousePressEvent(QMouseEvent *e)
     {
         if(e->modifiers() == Qt::ControlModifier)
         {
-            QMessageBox::information(this, "Teste", "Control + Click", QMessageBox::Ok);
+            //QMessageBox::information(this, "Teste", "Control + Click", QMessageBox::Ok);
+            emit openNewEditor();
         }
     }
 

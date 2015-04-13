@@ -29,7 +29,7 @@ void ScriptModel::setScripts(const std::vector<const Script *>& scripts)
     m_scripts = scripts;
 }
 
-int ScriptModel::rowCount(const QModelIndex &parent) const
+int ScriptModel::rowCount(const QModelIndex &/*parent*/) const
 {
     return m_scripts.size();
 }
@@ -87,6 +87,6 @@ void ScriptDialog::load()
 
 const Script* ScriptDialog::selectedScript()
 {
-    std::cout << "current row" << ui->scriptList->selectionModel()->currentIndex().row() << std::endl;
-    return m_scripts.at(ui->scriptList->selectionModel()->currentIndex().row());
+    int index = ui->scriptList->selectionModel()->currentIndex().row();
+    return m_scripts.at(index);
 }

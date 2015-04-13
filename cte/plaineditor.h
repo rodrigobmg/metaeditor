@@ -141,6 +141,9 @@ private slots:
      */
     void updateLineNumberArea(const QRect& rect, int dy);
 
+signals:
+    void openNewEditor();
+
 private:
     /**
      * @brief m_lineNumberArea handles the line number area

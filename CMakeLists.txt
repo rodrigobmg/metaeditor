@@ -42,8 +42,8 @@ set(metaeditor_HEADERS
         cte/Objects/script.h)
 
 set(metaeditor_FORMS
-        cte/Forms/mainwindow.ui
-        cte/Forms/scriptdialog.ui)
+        cte/Ui/Forms/mainwindow.ui
+        cte/Ui/Forms/scriptdialog.ui)
 
 ##QT macros
 qt5_wrap_cpp(metaeditor_HEADERS_MOC  ${metaeditor_HEADERS} )

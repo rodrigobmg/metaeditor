@@ -1,8 +1,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+//Utils
 #include <QTextCodec>
 #include <QMessageBox>
+
+//Widgets
 #include <QSplitter>
 #include <QTreeWidget>
 
@@ -26,13 +29,24 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow), m_editor(nullptr), m_proxy(nullptr), m_luaProcessor(nullptr)
 {
     ui->setupUi(this);
-    setupEditor();
-    setCentralWidget(m_editor);
+    setupMainWindow();
+
+    PlainEditor* editor = setupEditor();
+    connect(editor, SIGNAL(openNewEditor()), this, SLOT(openNewEditor()));
+
+    m_mdiarea.addSubWindow(editor);
+    m_mdiarea.setFocusPolicy(Qt::NoFocus);
+
+
+    //m_splitter.addWidget(m_editor);
+    setCentralWidget(&m_splitter);
 
     connect(ui->act_goto, SIGNAL(triggered()), this, SLOT(goToLine()));
+    connect(ui->act_exit, SIGNAL(triggered()), this, SLOT(close()));
+    //Slots da base de conhecimento
     connect(ui->act_installScripts, SIGNAL(triggered()), this, SLOT(installScripts()));
-    connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(ui->act_loadScripts, SIGNAL(triggered()), this, SLOT(loadScripts()));
+    connect(ui->act_loadScript, SIGNAL(triggered()), this, SLOT(loadScript()));
+    connect(ui->act_loadAllScripts, SIGNAL(triggered()), this, SLOT(loadAllScripts()));
 }
 
 MainWindow::~MainWindow()
@@ -53,35 +67,48 @@ MainWindow::~MainWindow()
     }
 }
 
-void MainWindow::setupEditor()
+PlainEditor* MainWindow::setupEditor()
 {
     QFont font;
     font.setFamily("Courier");
     font.setFixedPitch(true);
     font.setPointSize(10);
 
-    m_editor = new PlainEditor;
-    m_editor->setFont(font);
-    m_editor->installEventFilter(this);
+    PlainEditor* editor = new PlainEditor;
+    editor->setFont(font);
+    editor->installEventFilter(this);
 
-    m_luaProcessor = new LuaProcessor;
-    m_proxy = new EditorProxy(m_luaProcessor->state());
-    Luna<EditorProxy>::Register(m_luaProcessor->state(), m_proxy);
-    m_proxy->registerEditor(m_editor);
+    m_proxy->registerEditor(editor);
+
+    return editor;
 }
 
 bool MainWindow::eventFilter(QObject * obj, QEvent * event)
 {
-    if( obj == m_editor )
+    /*if( obj == m_editor )
     {
         //Update relevant information
-        updateStatusBar();
+
         return m_editor->eventFilter(this, event);
-
-    }
-
+    }*/
+    updateStatusBar();
     return QObject::eventFilter(obj, event);
 }
+/*
+void MainWindow::mousePressEvent(QMouseEvent * e)
+{
+    if(e->button() == Qt::LeftButton)
+    {
+        if(e->modifiers() == Qt::ControlModifier)
+        {
+            QMessageBox::information(this, "Teste", "Control + Click", QMessageBox::Ok);
+        }
+    }
+
+    QMainWindow::mousePressEvent(e);
+    //QObject::mousePressEvent(e);
+}
+*/
 
 void MainWindow::updateStatusBar()
 {
@@ -95,8 +122,37 @@ void MainWindow::updateStatusBar()
     }
 }
 
+void MainWindow::setupMainWindow()
+{
+    //Configure the split between editors and treeview
+    m_splitter.setOrientation(Qt::Horizontal);
+    m_splitter.setStretchFactor(1, 3);
+
+    //Mdi configurations
+    m_mdiarea.setViewMode(QMdiArea::TabbedView);
+    m_mdiarea.setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_mdiarea.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_mdiarea.setTabsClosable(true);
+
+    //Insert widgets at splitter
+    m_splitter.addWidget(&m_treeview);
+    m_splitter.addWidget(&m_mdiarea);
+
+    //Setup Lua
+    m_luaProcessor = new LuaProcessor;
+    m_proxy = new EditorProxy(m_luaProcessor->state());
+    Luna<EditorProxy>::Register(m_luaProcessor->state(), m_proxy);
+}
+
 ////////////////
 //Slots
+
+void MainWindow::openNewEditor()
+{
+    PlainEditor* editor = setupEditor();
+    connect(editor, SIGNAL(openNewEditor()), this, SLOT(openNewEditor()));
+    this->m_mdiarea.addSubWindow(editor);
+}
 
 void MainWindow::goToLine()
 {
@@ -180,7 +236,7 @@ void MainWindow::installScripts()
     }
 }
 
-void MainWindow::loadScripts()
+void MainWindow::loadScript()
 {
     try
     {
@@ -197,6 +253,29 @@ void MainWindow::loadScripts()
         if(dialog.exec() == QDialog::Accepted)
         {
             const Script* script = dialog.selectedScript();
+            m_luaProcessor->doBuffer(script->binaryData(), script->size());
+        }
+    }
+    catch(std::exception& ex)
+    {
+        std::cout << ex.what() << std::endl;
+    }
+}
+
+void MainWindow::loadAllScripts()
+{
+    try
+    {
+        std::vector<const Script*> scripts = DatabaseManager::instance().findAll<Script>("BCO");
+
+        if(scripts.empty())
+        {
+            QMessageBox::warning(this, "Erro", "Não existem scripts na base de conhecimento");
+            return;
+        }
+
+        for(auto script : scripts)
+        {
             m_luaProcessor->doBuffer(script->binaryData(), script->size());
         }
     }
