@@ -23,6 +23,7 @@
 
 //Dialogs
 #include "scriptdialog.h"
+#include "bswdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -41,12 +42,15 @@ MainWindow::MainWindow(QWidget *parent) :
     //m_splitter.addWidget(m_editor);
     setCentralWidget(&m_splitter);
 
+    //Slots de gerais
     connect(ui->act_goto, SIGNAL(triggered()), this, SLOT(goToLine()));
     connect(ui->act_exit, SIGNAL(triggered()), this, SLOT(close()));
     //Slots da base de conhecimento
     connect(ui->act_installScripts, SIGNAL(triggered()), this, SLOT(installScripts()));
     connect(ui->act_loadScript, SIGNAL(triggered()), this, SLOT(loadScript()));
     connect(ui->act_loadAllScripts, SIGNAL(triggered()), this, SLOT(loadAllScripts()));
+    //Slots da base de software
+    connect(ui->act_createBSW, SIGNAL(triggered()), this, SLOT(createBSW()));
 }
 
 MainWindow::~MainWindow()
@@ -283,4 +287,10 @@ void MainWindow::loadAllScripts()
     {
         std::cout << ex.what() << std::endl;
     }
+}
+
+void MainWindow::createBSW()
+{
+    BSWDialog dialog;
+    dialog.exec();
 }

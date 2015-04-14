@@ -29,5 +29,18 @@
 
 #Qt Creator Shit
 *.txt.user
-
 *.autosave
+
+#Build Folders
+*/bin/*
+*/build/*
+bin/*
+build/*
+docs/*
+*/docs/*
+db/*
+*/db/*
+
+#Doxygen
+*.doxygen
+*.doxygen.*

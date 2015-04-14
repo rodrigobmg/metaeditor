@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>660</width>
+    <height>569</height>
+   </rect>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="m_centralWidget"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>660</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>A&amp;rquivo</string>
+    </property>
+    <addaction name="act_exit"/>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Ferramentas</string>
+    </property>
+    <addaction name="act_goto"/>
+    <addaction name="act_createBSW"/>
+   </widget>
+   <widget class="QMenu" name="menuKnowledgeBase">
+    <property name="title">
+     <string>Base de conhecimento</string>
+    </property>
+    <addaction name="act_installScripts"/>
+    <addaction name="act_loadScript"/>
+    <addaction name="act_loadAllScripts"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuKnowledgeBase"/>
+  </widget>
+  <widget class="QStatusBar" name="m_statusBar"/>
+  <action name="actionCriar_novo_m_dulo">
+   <property name="text">
+    <string>Criar novo módulo</string>
+   </property>
+  </action>
+  <action name="actionCriar_novo_bloco_de_c_digo">
+   <property name="text">
+    <string>Criar novo bloco de código</string>
+   </property>
+  </action>
+  <action name="act_goto">
+   <property name="text">
+    <string>Ir para linha</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="act_newBSW">
+   <property name="text">
+    <string>Nova base de software</string>
+   </property>
+  </action>
+  <action name="act_openBSW">
+   <property name="text">
+    <string>Abrir base de software</string>
+   </property>
+  </action>
+  <action name="act_exit">
+   <property name="text">
+    <string>Sair</string>
+   </property>
+  </action>
+  <action name="act_installScripts">
+   <property name="text">
+    <string>Instalar Script Lua</string>
+   </property>
+  </action>
+  <action name="act_loadScript">
+   <property name="text">
+    <string>Carregar Script Lua</string>
+   </property>
+  </action>
+  <action name="act_loadAllScripts">
+   <property name="text">
+    <string>Carregar Todos os Scripts</string>
+   </property>
+  </action>
+  <action name="act_createBSW">
+   <property name="text">
+    <string>Criar base de software</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

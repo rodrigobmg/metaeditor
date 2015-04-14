@@ -39,13 +39,14 @@ public:
     void tryReconnection();
     void connect(const char* ip = "127.0.0.1", uint16_t port = MongoPortDefault) throw (DatabaseException);
 
-    template<typename T> T* read(const std::string& collection_name, const std::string& object_name, const std::string& database_name = DefaultDatabaseName) throw (DatabaseException);
     template<typename T> std::vector<const T*> findAll(const std::string& collection_name, const std::string& database_name=DefaultDatabaseName) throw(DatabaseException);
 
     bool create(Object& o, const std::string& collection_name, const std::string& database_name=DefaultDatabaseName) throw (DatabaseException);
-    bool destroy(Object& o, const std::string& collection_name, const std::string& database_name=DefaultDatabaseName) throw (DatabaseException);
+    template<typename T> T* read(const std::string& collection_name, const std::string& object_name, const std::string& database_name = DefaultDatabaseName) throw (DatabaseException);
     bool update(Object& o, const std::string& collection_name, const std::string& database_name=DefaultDatabaseName) throw (DatabaseException);
+    bool destroy(Object& o, const std::string& collection_name, const std::string& database_name=DefaultDatabaseName) throw (DatabaseException);
 
+private:
     bool findName(const std::string& object_name, mongoc_collection_t *collection);
     bool findOID(const bson_oid_t &id, mongoc_collection_t* collection);
 

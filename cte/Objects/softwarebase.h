@@ -6,15 +6,18 @@
 
 #include "User.h"
 
-const int MaxBaseName = 50;
 
 class SoftwareBase : public Object
 {
 public:
     SoftwareBase();
+    explicit SoftwareBase(const std::string& name);
+
+public:
+    void wrap(bson_t *data);
+    bool unwrap(const bson_t *data);
 
 private:
-    char* m_description;
     std::vector<User> users;
 };
 

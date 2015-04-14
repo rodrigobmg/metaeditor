@@ -56,6 +56,8 @@ private slots:
     void loadScript();
     void loadAllScripts();
 
+    void createBSW();
+
     //Editor
     void openNewEditor();
 
