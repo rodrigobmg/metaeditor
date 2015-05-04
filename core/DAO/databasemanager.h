@@ -16,7 +16,6 @@ private:
 
 public:
     explicit DatabaseException(const char* message);
-    ~DatabaseException();
     virtual const char* what() const throw();
 };
 
@@ -98,6 +97,7 @@ template <typename T> std::vector<const T*> DatabaseManager::findAll(const std::
 
     const bson_t* bson;
     std::vector<const T*> objs;
+
     while(mongoc_cursor_next(cursor, &bson))
     {
         T* obj = new T;
@@ -107,8 +107,6 @@ template <typename T> std::vector<const T*> DatabaseManager::findAll(const std::
             objs.push_back(obj);
         }
     }
-
-    std::cout << "number: " << objs.size() << std::endl;
 
     return objs;
 }

@@ -41,6 +41,7 @@ private:
     PlainEditor *setupEditor();
     void updateStatusBar();
     void setupMainWindow();
+    void loadScript(const std::string& scr);
 
 protected:
     virtual bool eventFilter(QObject * obj, QEvent * event);
@@ -72,6 +73,6 @@ private:
     PlainEditor*    m_editor;
     EditorProxy*    m_proxy;
     LuaProcessor*   m_luaProcessor;
-};
+};//5487
 
 #endif // MAINWINDOW_H

@@ -3,7 +3,7 @@
 
 #include <QMessageBox>
 
-#include <core/DAO/databasemanager.h>
+#include <DAO/databasemanager.h>
 #include "../Objects/softwarebase.h"
 
 BSWDialog::BSWDialog(QWidget *parent) :
@@ -12,6 +12,7 @@ BSWDialog::BSWDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     connect(ui->btnCreate, SIGNAL(clicked()), this, SLOT(createBSW()));
+    connect(ui->btnCancel, SIGNAL(clicked()), this, SLOT(close()));
 }
 
 BSWDialog::~BSWDialog()
@@ -25,17 +26,17 @@ bool BSWDialog::exists(QString &name)
     {
         if(DatabaseManager::instance().read<SoftwareBase>("BSW", name.toStdString()) != nullptr)
         {
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
     catch(DatabaseException& ex)
     {
         QMessageBox::critical(this, "Erro de acesso ao banco de dados", ex.what());
     }
 
-    return false;
+    return true;
 }
 
 void BSWDialog::createBSW()
@@ -55,6 +56,8 @@ void BSWDialog::createBSW()
         {
             QMessageBox::critical(this, "Erro", "Falha ao criar base de software");
         }
+
+
     }
     catch(DatabaseException& ex)
     {

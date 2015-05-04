@@ -38,7 +38,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_mdiarea.addSubWindow(editor);
     m_mdiarea.setFocusPolicy(Qt::NoFocus);
 
-
     //m_splitter.addWidget(m_editor);
     setCentralWidget(&m_splitter);
 
@@ -51,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->act_loadAllScripts, SIGNAL(triggered()), this, SLOT(loadAllScripts()));
     //Slots da base de software
     connect(ui->act_createBSW, SIGNAL(triggered()), this, SLOT(createBSW()));
+    connect(ui->act_loadBSW, SIGNAL(triggered()), this, SLOT(loadBSW()));
 }
 
 MainWindow::~MainWindow()
@@ -122,6 +122,7 @@ void MainWindow::updateStatusBar()
                 arg(m_editor->columnNumber()).
                 arg(m_editor->isEditable() ? "sim" : "não").
                 arg(m_editor->objectType());
+        std::cout << status.toStdString() << std::endl;
         ui->m_statusBar->showMessage(status);
     }
 }
@@ -237,6 +238,16 @@ void MainWindow::installScripts()
     catch(std::exception& ex)
     {
         std::cout << ex.what() << std::endl;
+    }
+}
+
+void MainWindow::loadScript(const std::string &scr)
+{
+    const Script* script = DatabaseManager::instance().read<Script>("BCO", scr);
+
+    if(script != nullptr)
+    {
+        m_luaProcessor->doBuffer(script->binaryData(), script->size());
     }
 }
 

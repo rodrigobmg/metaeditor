@@ -14,7 +14,7 @@
 #include <QPair>
 #include <QString>
 #include "Interfaces/IEditor.h"
-#include "Data/dataman.h"
+#include "Data/linemanager.h"
 
 /**
  * @brief The PlainEditor class

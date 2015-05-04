@@ -142,12 +142,12 @@ void PlainEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     }
 }
 
-#include "ui/mainwindow.h"
 bool PlainEditor::eventFilter(QObject * obj, QEvent * event)
 {
-    //((MainWindow*)obj)->updateStatusBar();
-
-    if( this->m_dataman == nullptr ) return true;
+    if( this->m_dataman == nullptr )
+    {
+        return true;
+    }
 
     if (event->type() == QEvent::KeyPress)
     {
@@ -177,6 +177,7 @@ bool PlainEditor::eventFilter(QObject * obj, QEvent * event)
                     return true;
                 }
                 return QObject::eventFilter(obj, event);
+
 #ifdef __LOG_TEST__
             case Qt::Key_Escape:
                 logFile.write("[PlainEditor] Dumping lines");

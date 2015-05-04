@@ -6,13 +6,13 @@
 #include "object.h"
 #include "Utils/bsonutils.h"
 
+#ifdef __LOG_TEST__
+#include <iostream>
+#endif
+
 DatabaseException::DatabaseException(const char *message)
 {
     strcpy(m_message, message);
-}
-
-DatabaseException::~DatabaseException()
-{
 }
 
 const char* DatabaseException::what() const throw()

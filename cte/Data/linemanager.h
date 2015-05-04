@@ -1,8 +1,8 @@
-#ifndef DATAMAN_H
-#define DATAMAN_H
+#ifndef LINEMANAGER_H
+#define LINEMANAGER_H
 
 /*
-* modulo DataManager
+* modulo LineManager
 * autor  Rodrigo Monteiro 1313493
 * descrição Módulo responsável pela gerência da estrutura de dados do editor de textos
 * versão
@@ -217,4 +217,4 @@ private:
     std::map<int, Line*> m_lines;
 };
 
-#endif // DATAMAN_H
+#endif // LINEMANAGER_H

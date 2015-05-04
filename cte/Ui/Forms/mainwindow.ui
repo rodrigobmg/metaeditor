@@ -37,19 +37,26 @@
      <string>Ferramentas</string>
     </property>
     <addaction name="act_goto"/>
-    <addaction name="act_createBSW"/>
    </widget>
    <widget class="QMenu" name="menuKnowledgeBase">
     <property name="title">
-     <string>Base de conhecimento</string>
+     <string>Base de Conhecimento</string>
     </property>
     <addaction name="act_installScripts"/>
     <addaction name="act_loadScript"/>
     <addaction name="act_loadAllScripts"/>
    </widget>
+   <widget class="QMenu" name="menuBase_de_Software">
+    <property name="title">
+     <string>Base de Software</string>
+    </property>
+    <addaction name="act_createBSW"/>
+    <addaction name="act_loadBSW"/>
+   </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuTools"/>
    <addaction name="menuKnowledgeBase"/>
+   <addaction name="menuBase_de_Software"/>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QStatusBar" name="m_statusBar"/>
   <action name="actionCriar_novo_m_dulo">
@@ -103,6 +110,11 @@
   <action name="act_createBSW">
    <property name="text">
     <string>Criar base de software</string>
+   </property>
+  </action>
+  <action name="act_loadBSW">
+   <property name="text">
+    <string>Carregar base de software</string>
    </property>
   </action>
  </widget>

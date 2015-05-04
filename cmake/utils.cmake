@@ -1,7 +1,7 @@
 macro(compiler_config)
 
     # Initialize CXXFLAGS.
-    set(CMAKE_CXX_FLAGS                "-std=c++11 -Wall -lz -v")
+    set(CMAKE_CXX_FLAGS                "-std=c++11 -Wall -v -Wc++11-extensions -Wwritable-strings")
     set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g")
     set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
     set(CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")

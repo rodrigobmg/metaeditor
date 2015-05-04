@@ -4,9 +4,6 @@
 #include <vector>
 #include <DAO/object.h>
 
-#include "User.h"
-
-
 class SoftwareBase : public Object
 {
 public:
@@ -18,7 +15,12 @@ public:
     bool unwrap(const bson_t *data);
 
 private:
-    std::vector<User> users;
+    std::string m_project;
+    std::string m_description;
+    std::string m_observation;
+    std::vector<std::string> m_modules;
+    std::vector<std::string> m_textBlocks;
+    std::vector<std::string> m_functions;
 };
 
 #endif // SOFTWAREBASE_H

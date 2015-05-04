@@ -18,5 +18,5 @@ void SoftwareBase::wrap(bson_t *data)
 
 bool SoftwareBase::unwrap(const bson_t *data)
 {
-    return false;
+    return Object::unwrap(data);
 }

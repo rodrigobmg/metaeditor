@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 project(core CXX C)
 
-include(../cmake/utils.cmake)
-include(../cmake/configure_libraries.cmake)
-
 set(core_SOURCES
         LuaWrapper/luacompiler.cpp
         LuaWrapper/luaprocessor.cpp
