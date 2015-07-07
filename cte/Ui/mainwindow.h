@@ -23,6 +23,7 @@
 
 //CTE
 #include "../plaineditor.h"
+#include "Objects/softwarebase.h"
 
 namespace Ui {
 class MainWindow;
@@ -38,7 +39,7 @@ public:
     ~MainWindow();
 
 private:
-    PlainEditor *setupEditor();
+    void setupEditor();
     void updateStatusBar();
     void setupMainWindow();
     void loadScript(const std::string& scr);
@@ -52,15 +53,19 @@ protected:
     //virtual void mousePressEvent(QMouseEvent *e);
 
 private slots:
-    void goToLine();
+    //Scripts
     void installScripts();
     void loadScript();
     void loadAllScripts();
 
+    //BSW
     void createBSW();
+    void loadBSW();
+    void initBSW();
 
     //Editor
-    void openNewEditor();
+    //void openNewEditor();
+    void goToLine();
 
 private:
     //Ui
@@ -70,9 +75,17 @@ private:
     QMdiArea m_mdiarea;
 
     //Utils
-    PlainEditor*    m_editor;
-    EditorProxy*    m_proxy;
-    LuaProcessor*   m_luaProcessor;
+    std::unique_ptr<PlainEditor>    m_editor;
+    std::unique_ptr<EditorProxy>    m_proxy;
+
+    /**
+     * @brief m_luaProcessor Processador Lua de uso geral da aplicação
+     */
+    std::unique_ptr<LuaProcessor>   m_luaProcessor;
+    /**
+     * @brief m_curBSW Base de software aberta
+     */
+    std::unique_ptr<SoftwareBase>   m_curBSW;
 };//5487
 
 #endif // MAINWINDOW_H

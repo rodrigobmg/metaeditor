@@ -15,6 +15,7 @@ set(core_HEADERS
         LuaWrapper/luacompiler.h
         LuaWrapper/luaprocessor.h
         LuaWrapper/luna.h
+        LuaWrapper/luaobject.h
         Proxies/editorproxy.h
         DAO/databasemanager.h
         DAO/object.h

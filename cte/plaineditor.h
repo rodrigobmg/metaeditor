@@ -8,13 +8,19 @@
 * versão:
 *   12/2014 1.0 Módulo inicial
 *   12/2014 1.1 Módulo finalizado
+*   05/2015 1.3 Alteração na forma como são criados os campos do editor
+*               Remoção de código inútil e adição de comentários
 **/
 
+#include <memory>
 #include <QPlainTextEdit>
 #include <QPair>
 #include <QString>
 #include "Interfaces/IEditor.h"
 #include "Data/linemanager.h"
+//Lua Stuff
+#include <LuaWrapper/luaprocessor.h>
+#include <LuaWrapper/luna.h>
 
 /**
  * @brief The PlainEditor class
@@ -29,10 +35,16 @@ public:
      */
     explicit PlainEditor(QWidget *parent = nullptr);
     /**
+     * @brief PlainEditor ctor
+     * @param scriptName O nome do script que vai ser executado no momento da instanciação do
+     *                   editor
+     * @param parent widget
+     */
+    explicit PlainEditor(const std::string& scriptName, QWidget *parent = nullptr);
+    /**
      * @brief PlainEditor dtor
      */
     ~PlainEditor();
-
     /**
      * @brief defines the area of editor to paint the line number
      * @param the event
@@ -85,7 +97,11 @@ public:
      * @return string representation of type
      */
     const QString objectType();
-
+    /**
+     * @brief luaState Retorna o ambiente Lua que o editor esta utilizando
+     * @return ambiente Lua utilizado pelo editor
+     */
+    lua_State* luaState();
     //Interface implementation
     /**
      * @brief currentLine @see{IEditor::currentLine}
@@ -100,23 +116,22 @@ public:
      */
     virtual void jumpLine();
     /**
-     * @brief addTitle @see{IEditor::addTitle}
+     * @brief createField
+     * @param type
+     * @param text
+     * @param fieldCallback
      */
-    virtual void addTitle(const char * str);
+    virtual void createField(int type, const std::string &text, std::string* fieldCallback);
     /**
-     * @brief addName @see{IEditor::addName}
+     * @brief moveCursor
+     * @param many
      */
-    virtual void addName(const char* str);
-#ifdef __LOG_TEST__
-    /**
-     * @brief structureLineCount @see{IEditor::structureLineCount}
-     */
-    virtual int structureLineCount();
-    /**
-     * @brief writeText @see{IEditor::writeText}
-     */
-    virtual void writeText(const char * str);
-#endif
+    virtual void moveCursor(int many);
+
+private:
+    void readOnly(bool status);
+    void printStructure();
+
 protected:
     /**
      * @brief resizeEvent handles the event of resize editor
@@ -156,7 +171,15 @@ private:
     /**
      * @brief Manager of structure
      */
-    LineManager* m_dataman;
+    std::unique_ptr<LineManager> m_lineMng;
+    /**
+     * @brief m_luaEnv Ambiente Lua utilizado pelo editor
+     */
+    LuaProcessor m_luaEnv;
+    /**
+     * @brief m_needsUpdate Utilizado para redesenho da estrutura
+     */
+    bool m_needsUpdate;
 };
 
 #endif // PLAINEDITOR_H

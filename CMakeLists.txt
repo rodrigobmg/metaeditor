@@ -6,12 +6,13 @@ include(cmake/configure_libraries.cmake)
 include(cmake/utils.cmake)
 
 compiler_config()      	#definido no modulo utils.cmake
-configure_libraries()	#definido no módulo configure_libraries.cmake
+configure_libraries()	  #definido no modulo configure_libraries.cmake
 
-##Declaração de opções para compilação
+##Declaração de opcoes para compilacao
 set(enable_tests ON)
 
 ##Sub-Projetos
-add_subdirectory(cte)
 add_subdirectory(core)
+add_subdirectory(cte)
+add_subdirectory(data)
 add_subdirectory(tests)

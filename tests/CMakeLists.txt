@@ -36,3 +36,19 @@ target_link_libraries(test_corelib_dbmng core_static ${GTEST_BOTH_LIBRARIES} pth
 add_test(AllTests test_corelib_dbmng)
 install(TARGETS test_corelib_dbmng ARCHIVE RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/bin)
 
+#Executável 3
+set(object_types_SOURCES
+        test_new_objects.cpp)
+
+add_executable(test_new_objects ${object_types_SOURCES})
+target_link_libraries(test_new_objects core_static ${GTEST_BOTH_LIBRARIES} pthread)
+add_test(AllTests test_new_objects)
+install(TARGETS test_new_objects ARCHIVE RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/bin)
+
+#Executável 4
+set(redis_test_SOURCES
+	test_redis.cpp)
+add_executable(test_redis ${redis_test_SOURCES})
+target_link_libraries(test_redis redox_static ${GTEST_BOTH_LIBRARIES} hiredis ev pthread)
+add_test(AllTests test_redis)
+install(TARGETS test_redis ARCHIVE RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/bin)

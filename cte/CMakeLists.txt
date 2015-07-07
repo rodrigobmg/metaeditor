@@ -15,6 +15,7 @@ set(metaeditor_SOURCES
         Ui/mainwindow.cpp
         Ui/scriptdialog.cpp
         Ui/bswdialog.cpp
+        Ui/listbsw.cpp
         Utils/linenumberwidget.cpp
         Utils/logfile.cpp
 ##Objetos utilizados pelo editor
@@ -29,6 +30,7 @@ set(metaeditor_HEADERS
         Ui/mainwindow.h
         Ui/scriptdialog.h
         Ui/bswdialog.h
+        Ui/listbsw.h
         Utils/linenumberwidget.h
         Utils/logfile.h
 ##Objetos utilizados pelo editor
@@ -39,7 +41,8 @@ set(metaeditor_HEADERS
 set(metaeditor_FORMS
         Ui/Forms/mainwindow.ui
         Ui/Forms/scriptdialog.ui
-        Ui/Forms/bswdialog.ui)
+        Ui/Forms/bswdialog.ui
+        Ui/Forms/listbsw.ui)
 
 ##QT macros
 qt5_wrap_cpp(metaeditor_HEADERS_MOC  ${metaeditor_HEADERS} )

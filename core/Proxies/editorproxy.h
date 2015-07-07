@@ -9,6 +9,8 @@
 * @versão
 *   12/2014 1.0 Módulo inicial
 *   12/2014 1.1 Módulo finalizado
+*   05/2014 1.3 Alteração na forma como são criados os campos do editor
+*               Remoção de código inútil
 **/
 
 #include "../Interfaces/IEditor.h"
@@ -62,6 +64,10 @@ public:
      */
     void registerEditor(IEditor* editor);
 
+
+    int createField(lua_State* L);
+    int indent(lua_State* L);
+
 public:
     /**
      * methods used by Luna wrapper
@@ -74,10 +80,6 @@ private:
      * @brief m_editor pointer to editor
      */
     IEditor* m_editor;
-    /**
-     * @brief m_state pointer to Lua environment
-     */
-    lua_State* m_state;
 };
 
 #endif // EDITORPROXY_H

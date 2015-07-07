@@ -14,37 +14,34 @@ static LogFile logFile("PlainEditor", "LogTest", true);
 PlainEditor::PlainEditor(QWidget *parent) :
     QPlainTextEdit(parent)
 {
-#ifdef __LOG_TEST__
-    logFile.write("[PlainEditor] ctor");
-#endif
-    m_lineNumberArea = new LineNumberWidget(this);
-    m_dataman = new LineManager;
+    //m_lineNumberArea = new LineNumberWidget(this);
+    m_lineMng = std::unique_ptr<LineManager>(new LineManager);
+    readOnly(true);
+    setCursorWidth(12);
 
-    connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
-    connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
-    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
+    QPalette p = this->palette();
+    p.setColor(QPalette::Base, Qt::black);
+    p.setColor(QPalette::Text, Qt::gray);
+    setPalette(p);
+    //connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
+    //connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
+    //connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
-    updateLineNumberAreaWidth(0);
-    highlightCurrentLine();
+    //updateLineNumberAreaWidth(0);
+    //highlightCurrentLine();
+}
+
+PlainEditor::PlainEditor(const std::string& scriptName, QWidget *parent)
+{
 }
 
 PlainEditor::~PlainEditor()
 {
-#ifdef __LOG_TEST__
-    logFile.write("[PlainEditor] dtor");
-#endif
-
-    if( m_dataman )
-    {
-        delete m_dataman;
-        m_dataman = nullptr;
-    }
-
-    if( m_lineNumberArea )
+    /*if( m_lineNumberArea )
     {
         delete m_lineNumberArea;
         m_lineNumberArea = nullptr;
-    }
+    }*/
 }
 
 int PlainEditor::lineNumberAreaWidth()
@@ -91,8 +88,8 @@ void PlainEditor::resizeEvent(QResizeEvent *e)
 {
     QPlainTextEdit::resizeEvent(e);
 
-    QRect cr = contentsRect();
-    m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+    //QRect cr = contentsRect();
+    //m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
 void PlainEditor::highlightCurrentLine()
@@ -142,23 +139,58 @@ void PlainEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     }
 }
 
+void PlainEditor::readOnly(bool status)
+{
+    this->setReadOnly(status);
+    if( status )
+    {
+        setTextInteractionFlags( this->textInteractionFlags() | Qt::TextSelectableByKeyboard);
+    }
+}
+
 bool PlainEditor::eventFilter(QObject * obj, QEvent * event)
 {
-    if( this->m_dataman == nullptr )
+    if(this->m_lineMng->lineCount() <= 0)
     {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+
+        if(keyEvent->key() == Qt::Key_1)
+        {
+            readOnly(true);
+        }
+        else if( keyEvent->key() == Qt::Key_2)
+        {
+            readOnly(false);
+        }
+
+        return QObject::eventFilter(obj, event);
+    }
+
+    unsigned int curColumn = columnNumber();
+    unsigned int curLine = currentLine();
+
+    curLine -= 1;
+    std::cout << "Colnumber: " << curColumn << std::endl;
+    if(m_lineMng->isField(curLine, curColumn) == false)
+    {
+        std::cout << "not field" << std::endl;
         return true;
     }
 
     if (event->type() == QEvent::KeyPress)
     {
-#ifdef __LOG_TEST__
-        logFile.write("[PlainEditor] KeyPress detected");
-#endif
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
 
-        if( keyEvent->modifiers().testFlag(Qt::ControlModifier) )
+        std::cout << "key = " << keyEvent->key() << std::endl;
+
+        if( keyEvent->modifiers().testFlag(Qt::ControlModifier))
         {
             return QObject::eventFilter(obj, event);
+        }
+
+        if( keyEvent->key() > 127 )
+        {
+            return false;
         }
 
         switch( keyEvent->key() )
@@ -172,50 +204,27 @@ bool PlainEditor::eventFilter(QObject * obj, QEvent * event)
 
             case Qt::Key_Enter:
             case Qt::Key_Return:
-                if(m_dataman->isEditable(columnNumber(), currentLine()) == false)
+                if(m_lineMng->isEditable(curColumn, curLine) == false)
                 {
-                    return true;
+                    return false;
                 }
                 return QObject::eventFilter(obj, event);
 
-#ifdef __LOG_TEST__
-            case Qt::Key_Escape:
-                logFile.write("[PlainEditor] Dumping lines");
-                m_dataman->dump();
-                return true;
-
-            case Qt::Key_F1:
-                logFile.write("[PlainEditor] Inserting a new column");
-                this->insertPlainText(" ");
-                return true;
-
-            case Qt::Key_F2:
-                logFile.write("[PlainEditor] Inserting a title");
-                m_dataman->addTitle("Nome da base de software:", columnNumber(), currentLine());
-                return true;
-
-            case Qt::Key_F3:
-                logFile.write("[PlainEditor] Inserting a name");
-                m_dataman->addName("EDT Nome para busca", columnNumber(), currentLine());
-                return true;
-#endif
-
             case Qt::Key_Backspace:
             {
+                std::cout << "Colnumber: " << curColumn << std::endl;
                 if(textCursor().selectionStart() == textCursor().selectionEnd())
                 {
-                    if(m_dataman->isEditable(columnNumber(), currentLine()) == false)
+                    if(m_lineMng->isEditable(curColumn, curLine) == false)
                     {
-                        return true;
+                        std::cout << "Backspace" << std::endl;
+                        return false;
                     }
-#ifdef __LOG_TEST__
-                    logFile.write("[PlainEditor] Deleting character");
-#endif
-                    m_dataman->removeCharacter(columnNumber(), currentLine());
+                    m_lineMng->removeCharacter(curColumn, curLine);
                     return QObject::eventFilter(obj, event);
                 }
 
-                return true;
+                return false;
             }
 
             case Qt::Key_Delete:
@@ -223,14 +232,12 @@ bool PlainEditor::eventFilter(QObject * obj, QEvent * event)
 
                 if(textCursor().selectionStart() == textCursor().selectionEnd())
                 {
-                    if(m_dataman->isEditable(columnNumber() + 1, currentLine()) == false)
+                    if(m_lineMng->isEditable(curColumn + 1, curLine) == false)
                     {
-                        return true;
+                        return false;
                     }
-#ifdef __LOG_TEST__
-                    logFile.write("[PlainEditor] Deleting a character");
-#endif
-                    m_dataman->removeCharacter(columnNumber() + 1, currentLine());
+
+                    m_lineMng->removeCharacter(curColumn + 1, curLine);
                     return QObject::eventFilter(obj, event);
                 }
 
@@ -239,19 +246,15 @@ bool PlainEditor::eventFilter(QObject * obj, QEvent * event)
 
             default:
             {
-#ifdef __LOG_TEST__
-                logFile.write("[PlainEditor] Inserting a new character");
-#endif
-                if(m_dataman->eventFilter(columnNumber(), currentLine(), keyEvent->text().at(0).toLatin1()) == false)
+                if(m_lineMng->eventFilter(curColumn, curLine, keyEvent->text().at(0).toLatin1()) == false)
                 {
-                    return true;
+                    return false;
                 }
 
                 return QObject::eventFilter(obj, event);
-                //return false;
             }
-        }// switch( keyEvent->key() )
-    }// if (event->type() == QEvent::KeyPress)
+        }
+    }
 
     //Continua a execução normalmente
     return QPlainTextEdit::eventFilter(obj, event);
@@ -263,20 +266,15 @@ void PlainEditor::mousePressEvent(QMouseEvent *e)
     {
         if(e->modifiers() == Qt::ControlModifier)
         {
-            //QMessageBox::information(this, "Teste", "Control + Click", QMessageBox::Ok);
             emit openNewEditor();
         }
     }
-
 
     return QPlainTextEdit::mouseMoveEvent(e);
 }
 
 void PlainEditor::moveToLine(unsigned int lineNumber)
 {
-#ifdef __LOG_TEST__
-    logFile.write("[PlainEditor] Move to line [%d]", lineNumber);
-#endif
     QTextBlock block = this->document()->findBlockByLineNumber(lineNumber);
 
     if(block.isValid() == false)
@@ -300,9 +298,6 @@ void PlainEditor::moveToLine(unsigned int lineNumber)
 
 void PlainEditor::moveToNextLine()
 {
-#ifdef __LOG_TEST__
-    logFile.write("[PlainEditor] Moving to next line");
-#endif
     int nextLine = this->textCursor().blockNumber() + 1;
 
     QTextBlock block = this->document()->findBlockByNumber(nextLine);
@@ -322,9 +317,6 @@ void PlainEditor::moveToNextLine()
 
 int PlainEditor::lineCount()
 {
-#ifdef __LOG_TEST__
-    logFile.write("[PlainEditor] recovering the line count");
-#endif
     return this->document()->lineCount();
 }
 
@@ -338,11 +330,12 @@ int PlainEditor::columnNumber()
 
     return 0;
 }
+
 bool PlainEditor::isEditable()
 {
-    if( m_dataman != nullptr )
+    if( m_lineMng != nullptr )
     {
-        return m_dataman->isEditable(columnNumber(), currentLine());
+        return m_lineMng->isEditable(columnNumber(), currentLine() - 1);
     }
 
     return false;
@@ -350,12 +343,17 @@ bool PlainEditor::isEditable()
 
 const QString PlainEditor::objectType()
 {
-    if( m_dataman != nullptr )
+    if( m_lineMng != nullptr )
     {
-        return QString::fromStdString(m_dataman->type(columnNumber(), currentLine()));
+        return QString::fromStdString(m_lineMng->type(columnNumber(), currentLine() - 1));
     }
 
     return "Error";
+}
+
+lua_State* PlainEditor::luaState()
+{
+    return m_luaEnv.state();
 }
 
 /***
@@ -364,68 +362,57 @@ const QString PlainEditor::objectType()
  ***/
 int PlainEditor::currentLine()
 {
-    return textCursor().blockNumber();
+    return textCursor().blockNumber() + 1;
 }
 
 int PlainEditor::currentColumn()
 {
-#ifdef __LOG_TEST__
-    logFile.write("[PlainEditor] get the current column");
-#endif
     return columnNumber();
 }
 
 void PlainEditor::jumpLine()
 {
-#ifdef __LOG_TEST__
-    logFile.write("[PlainEditor] jump one line");
-#endif
     moveToNextLine();
 }
 
-void PlainEditor::addTitle(const char * str)
+void PlainEditor::moveCursor(int many)
 {
-#ifdef __LOG_TEST__
-    logFile.write("[PlainEditor] insert the title [%s] at the document", str);
-#endif
+    QTextCursor cursor = this->textCursor();
+    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, many);
+    setTextCursor(cursor);
+}
 
-    int col = 0;
-    if(columnNumber() > 1)
+void PlainEditor::printStructure()
+{
+    QString wholeText;
+
+    for( int i = 0; i < m_lineMng->count(); i++ )
     {
-        col = columnNumber() + 2;
+        //wholeText.append(QString::fromStdString(m_));
+    }
+}
+
+void PlainEditor::createField(int type, const std::string &text, std::string *fieldCallback)
+{
+    int col = columnNumber();
+
+    m_lineMng->createField(static_cast<FieldType>(type), text, fieldCallback, col, currentLine() - 1);
+
+    QString fmtText = QString::fromStdString(text);
+    switch(type)
+    {
+        case Title:
+        {
+            fmtText.prepend("<font color=\"dark green\">").append("<\\font>");
+        }
+        break;
+    case Text:
+    case Name:
+        {
+            fmtText.prepend("<a href=#><font color=\"white\">").append("<\\font><\\a>");
+        }
+        break;
     }
 
-    m_dataman->addTitle(str, col, currentLine());
-    this->textCursor().insertText(str);
+    this->textCursor().insertHtml(fmtText);
 }
-
-void PlainEditor::addName(const char * str)
-{
-#ifdef __LOG_TEST__
-    logFile.write("[PlainEditor] insert the name [%s] at the document", str);
-#endif
-
-    int col = 0;
-    if(columnNumber() > 1)
-    {
-        col = columnNumber() + 2;
-    }
-
-    m_dataman->addName(str, col, currentLine());
-    this->textCursor().insertText(str);
-}
-#ifdef __LOG_TEST__
-int PlainEditor::structureLineCount()
-{
-
-    logFile.write("[PlainEditor] structure line count called");
-
-    return (int)m_dataman->lineCount();
-}
-
-void PlainEditor::writeText(const char *str)
-{
-    logFile.write("[PlainEditor] insert a text at document");
-    this->insertPlainText(QString::fromLatin1(str));
-}
-#endif

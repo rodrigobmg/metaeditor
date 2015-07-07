@@ -56,8 +56,6 @@ void BSWDialog::createBSW()
         {
             QMessageBox::critical(this, "Erro", "Falha ao criar base de software");
         }
-
-
     }
     catch(DatabaseException& ex)
     {

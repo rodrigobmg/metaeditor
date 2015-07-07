@@ -1,0 +1,18 @@
+[PlainEditor] ctor
+[PlainEditor] insert the title [fuck: ] at the document
+[PlainEditor] insert the name [teste] at the document
+[PlainEditor] jump one line
+[PlainEditor] Moving to next line
+[PlainEditor] insert the title [Jack: ] at the document
+[PlainEditor] insert the name [Sparrow] at the document
+[PlainEditor] jump one line
+[PlainEditor] Moving to next line
+[PlainEditor] insert a text at document
+[PlainEditor] insert a text at document
+[PlainEditor] insert a text at document
+[PlainEditor] insert a text at document
+[PlainEditor] insert a text at document
+[PlainEditor] insert a text at document
+[PlainEditor] insert the title [Version: ] at the document
+[PlainEditor] insert the name [5.3] at the document
+[PlainEditor] structure line count called

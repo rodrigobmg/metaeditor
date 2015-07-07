@@ -7,14 +7,41 @@
 static LogFile logFile("DataManager", "LogTest", true);
 #endif
 
+namespace util
+{
+    template<typename _Iterator1, typename _Iterator2>
+    inline size_t IncUtf8StringIterator(_Iterator1& it, const _Iterator2& last)
+    {
+        if(it == last) return 0;
+        unsigned char c;
+        size_t res = 1;
+        for(++it; last != it; ++it, ++res) {
+            c = *it;
+            if(!(c&0x80) || ((c&0xC0) == 0xC0)) break;
+        }
+
+        return res;
+    }
+
+    inline size_t Utf8StringSize(const std::string& str)
+    {
+        size_t res = 0;
+        std::string::const_iterator it = str.begin();
+        for(; it != str.end(); IncUtf8StringIterator(it, str.end()))
+            res++;
+
+        return res;
+    }
+}
+
 Field::Field() :
     m_position(0), m_type(Text), m_start(0), m_end(0)
 {
     //empty
 }
 
-Field::Field(int pos, FieldType type, unsigned int start, unsigned int end) :
-    m_position(pos), m_type(type), m_start(start), m_end(end)
+Field::Field(int pos, FieldType type, unsigned int start) :
+    m_position(pos), m_type(type), m_start(start), m_end(start)
 {
     //empty
 }
@@ -24,60 +51,52 @@ bool Field::atRange(unsigned int col)
     return col >= m_start && col <= m_end;
 }
 
-template<typename _Iterator1, typename _Iterator2>
-inline size_t IncUtf8StringIterator(_Iterator1& it, const _Iterator2& last) {
-    if(it == last) return 0;
-    unsigned char c;
-    size_t res = 1;
-    for(++it; last != it; ++it, ++res) {
-        c = *it;
-        if(!(c&0x80) || ((c&0xC0) == 0xC0)) break;
-    }
-
-    return res;
-}
-
-inline size_t Utf8StringSize(const std::string& str)  {
-    size_t res = 0;
-    std::string::const_iterator it = str.begin();
-    for(; it != str.end(); IncUtf8StringIterator(it, str.end()))
-        res++;
-
-    return res;
-}
-
 void Field::appendInfo(std::string c, unsigned int pos)
 {
+    std::cout << "Appending Info: " << c << std::endl;
     m_info.insert( (pos-m_start), c);
-    //std::cout << "appendInfo --> String[" << c.c_str() << "] Size[" << c.size() << "]" << std::endl;
-    m_end += Utf8StringSize(c);
+    m_end += util::Utf8StringSize(c) - 1;
+    if( m_type != Title )
+    {
+        m_end += 1;
+        m_fieldCallback->insert( (pos-m_start), c);
+    }
 }
 
 void Field::appendChar(char c, unsigned int pos)
 {
+    std::cout << "Appending Char: " << c << std::endl;
     m_info.insert( (pos-m_start) , 1, c);
     m_end++;
+    if( m_type != Title)
+    {
+        m_fieldCallback->insert((pos-m_start), 1, c);
+    }
 }
 
 void Field::removeAt(unsigned int pos)
 {
     m_info.erase( (pos-m_start), 1);
     m_end--;
+    if( m_type != Title)
+    {
+        m_fieldCallback->erase( (pos-m_start), 1);
+    }
 }
 
-void Field::shiftRight()
+void Field::print()
 {
-    m_start++;
-    m_end++;
+    std::cout << "======FIELD======" << std::endl;
+    std::cout << "Field number: " << m_position << std::endl;
+    std::cout << "Field type: " << m_type << std::endl;
+    std::cout << "Field start: " << m_start << std::endl;
+    std::cout << "Field end: " << m_end << std::endl;
+    if( m_type != Title )
+        std::cout << "Field callback: " << m_fieldCallback->c_str() << std::endl;
+    std::cout << "======FIELD======" << std::endl;
 }
 
-void Field::shiftLeft()
-{
-    m_start--;
-    m_end--;
-}
-
-Field* Line::searchAtCol(unsigned int col)
+Field* Line::getFieldByColumn(unsigned int col)
 {
     for(auto d : m_fields)
     {
@@ -90,23 +109,9 @@ Field* Line::searchAtCol(unsigned int col)
     return nullptr;
 }
 
-std::string Line::dump()
-{
-    std::string ret = "";
-    for( unsigned int i = 0; i < m_fields.size(); i++ )
-    {
-        ret.append(m_fields[i]->m_info);
-        ret.append(" ");
-    }
-
-    return ret;
-}
-
 LineManager::LineManager()
 {
-#ifdef __LOG_TEST__
-    logFile.write("[DataMananager] ctor");
-#endif
+    //empty
 }
 
 LineManager::~LineManager()
@@ -122,187 +127,94 @@ LineManager::~LineManager()
     }
 }
 
-unsigned int LineManager::lineCount()
+unsigned int LineManager::count()
 {
     return (unsigned int)m_lines.size();
 }
-
-std::string LineManager::dumpLine(unsigned int line)
-{
-#ifdef __LOG_TEST__
-    logFile.write("[DataMananager] dumping line [%d]", line);
-#endif
-    return m_lines.at(line)->dump();
-}
-
-std::string LineManager::dumpLines()
-{
-    std::string ret = std::string("");
-    for( auto line : m_lines )
-    {
-        ret.append(line.second->dump() + "\n");
-    }
-    return ret;
-}
-
-#ifdef __LOG_TEST__
-void LineManager::dump()
-{
-    logFile.write("[DataManager] Dumping all lines");
-    for( auto line : m_lines )
-    {
-        logFile.write("\t>>>Line[%d] Text[ %s]", (line.second->m_number + 1), line.second->dump().c_str() );
-    }
-}
-#endif
 
 void LineManager::removeCharacter(unsigned int col, unsigned int line)
 {
     try
     {
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager] Removing character Line[%d] Column[%d]", line, col);
-#endif
+        Line* pLine = m_lines.at(line);
 
-        Line* ptr = m_lines.at(line);
-
-        Field* type = ptr->searchAtCol(col);
-
-        if( type != nullptr )
+        if( pLine == nullptr )
         {
-            type->removeAt(col - 1);
-
-            for( unsigned int i = type->m_position + 1; i < ptr->m_fields.size(); i++ )
-            {
-                Field* o = ptr->m_fields.at(i);
-                o->shiftLeft();
-            }
+            return;
         }
-    }
-    catch(std::out_of_range& ex)
-    {
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager] Remove Character Error [%s]", ex.what());
-#endif
+
+        Field* pField = pLine->getFieldByColumn(col);
+
+        if( pField != nullptr )
+        {
+            pField->removeAt(col - 1);
+        }
     }
     catch(std::exception& ex)
     {
+
+        std::cout << "removeCharacter" << std::endl;
         throw ex;
-    }
-}
-
-void LineManager::addTitle(const char* str, unsigned int col, unsigned int line)
-{
-    Line* ptr = nullptr;
-
-    try
-    {
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager] Inserting title [%s] at Line[%d] in Column[%d]", str, line, col);
-#endif
-        ptr = m_lines.at(line);
-    }
-    catch(std::out_of_range& /*ex*/)
-    {
-        ptr = new Line;
-        ptr->m_number = line;
-        m_lines.insert(std::make_pair(line, ptr));
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager] Inserting a new line [%d]", line);
-#endif
-    }
-
-    Field* type = ptr->searchAtCol(col);
-
-    if( type == nullptr )
-    {
-        type = new Field((unsigned int)ptr->m_fields.size(), Title, col, col);
-        type->appendInfo(str, col);
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager] Appending new string [%s] with size [%d] at [%d] in line [%d]", str, type->m_end, col, line);
-#endif
-        ptr->m_fields.push_back(type);
-    }
-}
-
-void LineManager::addName(const char* str, unsigned int col, unsigned int line)
-{
-    Line* ptr = nullptr;
-    try
-    {
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager] Inserting name [%s] at Line[%d] in Column[%d]", str, line, col);
-#endif
-        ptr = m_lines.at(line);
-    }
-    catch(std::out_of_range& /*ex*/)
-    {
-        ptr = new Line;
-        ptr->m_number = line;
-        m_lines.insert(std::make_pair(line, ptr));
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager] Inserting a new line [%d]", line);
-#endif
-    }
-
-    Field* type = ptr->searchAtCol(col);
-
-    if( type == nullptr )
-    {
-        type = new Field((unsigned int)ptr->m_fields.size(), Name, col, col);
-        type->appendInfo(str, col);
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager] Appending new string [%s] with size [%d] at [%d] in line [%d]", str, type->m_end, col, line);
-#endif
-        ptr->m_fields.push_back(type);
     }
 }
 
 bool LineManager::isEditable(unsigned int col, unsigned int line)
 {
-    if(m_lines.empty())
+    if(!isValid(line))
     {
-        return true;
+        return false;
     }
 
     try
     {
-        std::cout << "m_lines.size() " << m_lines.size() << std::endl;
-        Line* ptr = m_lines.at(line);
-        Field* type = ptr->searchAtCol(col);
+        Line* pLine = m_lines.at(line);
 
-        if(type != nullptr)
+        if(pLine == nullptr)
         {
-            if( type->m_type == Title )
+            return false;
+        }
+
+        Field* pField = pLine->getFieldByColumn(col);
+
+        if(pField != nullptr)
+        {
+            if( pField->m_type == Title )
+            {
                 return false;
+            }
         }
 
         return true;
     }
-    catch(std::out_of_range& ex)
+    catch(std::exception& ex)
     {
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager][isEditable] Expected error at eventFilter [%s]", ex.what());
-#endif
-        return true;
+
+        std::cout << "isEditable" << std::endl;
+        throw ex;
     }
 }
 
 std::string LineManager::type(unsigned int col, unsigned int line) throw(std::exception)
 {
-    if(m_lines.empty())
+    if(!isValid(line))
     {
-        return "Text";
+        return "None";
     }
 
     try
     {
-        Line* ptr = m_lines.at(line);
-        Field* type = ptr->searchAtCol(col);
+        Line* pLine = m_lines.at(line);
 
-        if(type != nullptr)
+        if( pLine == nullptr )
         {
-            switch(type->m_type)
+            return "Text";
+        }
+
+        Field* pField = pLine->getFieldByColumn(col);
+
+        if(pField != nullptr)
+        {
+            switch(pField->m_type)
             {
                 case Title:
                     return "Title";
@@ -310,8 +222,6 @@ std::string LineManager::type(unsigned int col, unsigned int line) throw(std::ex
                     return "Text";
                 case Name:
                     return "Name";
-                case Relation:
-                    return "Relation";
                 case None:
                 case MaxFieldType:
                     return "Error";
@@ -320,66 +230,144 @@ std::string LineManager::type(unsigned int col, unsigned int line) throw(std::ex
 
         return "Text";
     }
-    catch(std::out_of_range& ex)
-    {
-        //logFile.write("[DataMananager][type] Expected error at eventFilter [%s]", ex.what());
-        return "Text";
-    }
     catch(std::exception& ex)
     {
+
+        std::cout << "type" << std::endl;
         throw ex;
     }
 }
 
 bool LineManager::eventFilter(unsigned int col, unsigned int line, char character)
 {
-    Line* ptr;
-    int position = 0;
-
     try
     {
-        ptr = m_lines.at(line);
-        Field* type = ptr->searchAtCol(col);
+        Line* pLine = m_lines.at(line);
 
-        if( type != nullptr )
+        if(pLine == nullptr)
         {
-            if( type->m_type == Title)
+            return false;
+        }
+
+        Field* pField = pLine->getFieldByColumn(col);
+
+        if( pField != nullptr )
+        {
+            if( pField->m_type == Title)
             {
                 return false;
             }
-#if __LOG_TEST__
-            logFile.write("[DataMananager] Appending new character [%c] at [%d] in line [%d]", character, col, line);
-#endif
-            type->appendChar(character, col);
 
-            for( unsigned int i = type->m_position + 1; i < ptr->m_fields.size(); i++ )
-            {
-                Field* o = ptr->m_fields.at(i);
-                o->shiftRight();
-            }
-
+            pField->appendChar(character, col);
             return true;
         }
-        else
-        {
-            position = (unsigned int)ptr->m_fields.size();
-        }
     }
-    catch(std::out_of_range& /*ex*/)
+    catch(std::exception& ex)
     {
-#ifdef __LOG_TEST__
-        logFile.write("[DataMananager][Create new line] Inserting new line [%d]", line);
-#endif
-        ptr = new Line;
-        ptr->m_number = line;
+        std::cout << "eventFilter" << std::endl;
+        throw ex;
     }
 
-    Field* type = new Field(position, Text, col, col);
-#ifdef __LOG_TEST__
-    logFile.write("[DataMananager] Appending new character [%c] at [%d] in line [%d]", character, col, line);
-#endif
-    type->appendChar(character, col);
-    ptr->m_fields.push_back(type);
-    m_lines.insert(std::make_pair(line, ptr));
-    return true;
+    return false;
 }
+
+bool LineManager::isValid(unsigned int line)
+{
+    if(m_lines.empty())
+    {
+        return false;
+    }
+
+    int linecount = m_lines.size();
+
+    if(line < linecount)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool LineManager::isField(unsigned int line, unsigned int col)
+{
+    try
+    {
+        if( !isValid(line))
+        {
+            return false;
+        }
+
+        Line* pLine = m_lines.at(line);
+
+        if(pLine != nullptr)
+        {
+            if( pLine->getFieldByColumn(col) != nullptr )
+            {
+                return true;
+            }
+        }
+    }
+    catch(std::exception& ex)
+    {
+        std::cout << "isField" << std::endl;
+    }
+
+    return false;
+}
+
+void LineManager::createField(FieldType type, const std::string &text, std::string* fieldCallback, unsigned int start, unsigned int line)
+{
+    Line* pLine = nullptr;
+
+    if( isValid(line) )
+    {
+        pLine = m_lines.at(line);
+    }
+    else
+    {
+        pLine = new Line;
+        pLine->m_number = line;
+        m_lines.insert(std::make_pair(line, pLine));
+    }
+
+    Field* pField = new Field(pLine->m_fields.size(), type, start);
+
+    if( type != Title )
+    {
+        fieldCallback->clear();
+        pField->m_fieldCallback = fieldCallback;
+    }
+
+    pField->appendInfo(text, start);
+    pField->print();
+
+    pLine->m_fields.push_back(pField);
+    std::cout << "Line " << line << " has " << pLine->m_fields.size() << " fields" << std::endl;
+}
+
+void LineManager::backspace(unsigned int line, unsigned int column)
+{
+}
+
+void LineManager::getField(unsigned int line)
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -24,7 +24,7 @@ std::string BSONUtils::getString(const bson_t *bson, const std::string& field_na
         }
     }
 
-    return "";
+    return " ";
 }
 
 int BSONUtils::getInt(const bson_t *bson, const std::string& field_name)

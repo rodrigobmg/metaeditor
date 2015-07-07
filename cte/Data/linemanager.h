@@ -14,6 +14,7 @@
 #include <vector>
 #include <iostream>
 #include <QObject>
+#include <lua.hpp>
 
 /**
  * @brief Enumeration of possible objects contained at line
@@ -24,9 +25,19 @@ enum FieldType
     Text,
     Name,
     Title,
-    Relation,
     MaxFieldType
 };
+
+
+/**
+ *
+ * Título 1: campo1
+ *
+ *
+ *
+ *
+ *
+ */
 
 /**
  * @brief Representation of an object.
@@ -54,6 +65,10 @@ struct Field
      * @brief The string representing the information contained at object
      */
     std::string m_info;
+    /**
+     * @brief m_fieldCallback
+     */
+    std::string* m_fieldCallback;
 
     /**
      * @brief default ctor
@@ -64,9 +79,8 @@ struct Field
      * @param pos the position of object
      * @param type the type of object
      * @param start the initial column
-     * @param end the size of object
      */
-    Field(int pos, FieldType type, unsigned int m_start, unsigned int m_end);
+    Field(int pos, FieldType type, unsigned int m_start);
     /**
      * @brief atRange Check if the text cursor is inside of object
      * @param col the column
@@ -90,14 +104,8 @@ struct Field
      * @param pos the position where character will be removed
      */
     void removeAt(unsigned int pos);
-    /**
-     * @brief shiftRight shift the string one position to right
-     */
-    void shiftRight();
-    /**
-     * @brief shiftLeft shift the string one position to left
-     */
-    void shiftLeft();
+
+    void print();
 };
 
 /**
@@ -119,12 +127,85 @@ struct Line
      * @param col the column
      * @return the object if it exists, otherwise returns nullptr
      */
-    Field* searchAtCol(unsigned int col);
+    Field* getFieldByColumn(unsigned int col);
+};
+
+const int Unlimited = -1;
+
+inline std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems)
+{
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim))
+    {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+
+inline std::vector<std::string> split(const std::string &s, char delim)
+{
+    std::vector<std::string> elems;
+    split(s, delim, elems);
+    return elems;
+}
+
+class FieldRC
+{
+public:
+
+    FieldRC(int startLine, int startCol, int size = Unlimited) :
+        m_startLine(startLine), m_endLine(startLine),
+        m_startCol(startCol), m_endCol(startCol), m_size(size)
+    {
+        if( size != Unlimited )
+        {
+            m_endCol = startCol + size;
+        }
+    }
+
+    bool append(char c)
+    {
+        if( m_size != Unlimited && (m_characters.size() + 1) > m_size )
+        {
+            return false;
+        }
+
+        m_characters.push_back(c);
+        m_endCol++;
+    }
+
+    bool itsMe(int line)
+    {
+        if(line >= m_startLine && line <= m_endLine)
+        {
+            return true;
+        }
+    }
+
     /**
-     * @brief dump dump the lines
-     * @return the lines dumped
+     * ToDo: Pensar melhor nessa função
+     * @brief convertColumnByLine
+     * @param line
+     * @param column
+     * @return
      */
-    std::string dump();
+    int convertColumnByLine(int line, int column)
+    {
+        std::vector<std::string> effectiveLines = split(m_characters, '\n');
+        line = line - m_startLine;
+        std::string characters = effectiveLines.at(line);
+        return characters.at(column);
+    }
+
+private:
+    int m_startLine; //Linha inicial
+    int m_endLine; // Linha final, caso não tenha enter na string deve ser igual a linha inicial
+    int m_startCol; // Coluna inicial na linha inicial
+    int m_endCol;// Caso o tamanho máximo de caracteres seja diferente de -1, o tamanho vai ser a coluna de início + o tamanho
+    int m_size; // Tamanho máximo de caracteres, caso não tenha limites deve ser -1
+    std::string m_characters; //Caracteres
 };
 
 /**
@@ -169,52 +250,39 @@ public:
      * @brief lineCount
      * @return the current number of lines
      */
-    unsigned int lineCount();
-
-    //Operations
-    /**
-     * @brief addTitle Insert a title on current position
-     * @param str the title
-     * @param col the position of cursor
-     * @param line the line of cursor
-     */
-    void addTitle(const char *str, unsigned int col, unsigned int line);
-    /**
-     * @brief addName Insert a name on current position
-     * @param str the name
-     * @param col the position of cursor
-     * @param line the line of cursor
-     */
-    void addName(const char* str, unsigned int col, unsigned int line);
+    unsigned int count();
     /**
      * @brief removeCharacter Remove one character from object
      * @param col the position of cursor
      * @param line the line of cursor
      */
     void removeCharacter(unsigned int col, unsigned int line);
-    /**
-     * @brief dumpLine Dump one line of structure
-     * @param line the line to be dumped
-     * @return the line dumped
-     */
-    std::string dumpLine(unsigned int line);
-    /**
-     * @brief dumpLines Dump all lines of structure
-     * @return the lines dumped
-     */
-    std::string dumpLines();
-#ifdef __LOG_TEST__
-    //Debug
-    /**
-     * @brief dump Dump the structure in log file
-     */
-    void dump();
-#endif
+
+    //////////////////////
+    ///Teste
+    void createField(FieldType type, const std::string& text, std::string* fieldCallback, unsigned int start, unsigned int line);
+
+    bool isField(unsigned int line, unsigned int col);
+
+    bool isValid(unsigned int line);
+
+    void backspace(unsigned int line, unsigned int column);
+    void enter(unsigned int line, unsigned int column);
+    void del(unsigned int line, unsigned int column);
+    void tab(unsigned int line, unsigned int column);
+
+private:
+    Field* getField(unsigned int line);
+
 private:
     /**
      * @brief Collection of lines
      */
     std::map<int, Line*> m_lines;
+    /**
+     * @brief conjunto de campos
+     */
+    std::map<int, Field**> m_fields;
 };
 
 #endif // LINEMANAGER_H

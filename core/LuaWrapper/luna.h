@@ -78,7 +78,10 @@ public:
     static int gc_obj(lua_State *L)
     {
         T** obj = static_cast<T**>(luaL_checkudata(L, -1, T::className));
-        delete (*obj);
+        if(*obj)
+        {//Memory Leak fix
+            delete (*obj);
+        }
         return 0;
     }
 

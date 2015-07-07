@@ -19,23 +19,15 @@ public:
         delete[] name;
     }
 
-    virtual void addTitle(const char* str)
+    virtual void createField(int type, const std::string &text, std::string* a)
     {
-        title = new char[strlen(str)];
-        strcpy(title, str);
+
     }
 
-    virtual void addName(const char* str)
-    {
-        name = new char[strlen(str)];
-        strcpy(name, str);
-    }
-
+    virtual void moveCursor(int many) {}
     virtual int currentLine(){ return 0; }
     virtual int currentColumn(){ return 0; }
     virtual void jumpLine(){}
-    virtual int structureLineCount(){ return -1;}
-    virtual void writeText(const char* str){}
 };
 
 TEST(LuaProcessor, TestCompileAndRunScriptTrue)
@@ -58,7 +50,7 @@ TEST(EditorProxy, TestProxy)
 {
     LuaProcessor lp;
     MOC_Editor editor;
-    EditorProxy proxy(lp.state());
+    EditorProxy proxy(nullptr);
     Luna<EditorProxy>::Register(lp.state(), &proxy);
     proxy.registerEditor(&editor);
 

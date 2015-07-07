@@ -20,26 +20,29 @@
 //Objects
 #include <DAO/databasemanager.h>
 #include "../Objects/script.h"
+#include "../Objects/softwarebase.h"
 
 //Dialogs
 #include "scriptdialog.h"
 #include "bswdialog.h"
+#include "listbsw.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_editor(nullptr), m_proxy(nullptr), m_luaProcessor(nullptr)
 {
     ui->setupUi(this);
-    setupMainWindow();
+    //setupMainWindow();
 
-    PlainEditor* editor = setupEditor();
-    connect(editor, SIGNAL(openNewEditor()), this, SLOT(openNewEditor()));
+    //PlainEditor* editor = setupEditor();
+    //connect(editor, SIGNAL(openNewEditor()), this, SLOT(openNewEditor()));
 
-    m_mdiarea.addSubWindow(editor);
-    m_mdiarea.setFocusPolicy(Qt::NoFocus);
+    //m_mdiarea.addSubWindow(editor);
+    //m_mdiarea.setFocusPolicy(Qt::NoFocus);
 
-    //m_splitter.addWidget(m_editor);
-    setCentralWidget(&m_splitter);
+    setupEditor();
+    //m_splitter.addWidget(m_editor.get());
+    //setCentralWidget(&m_splitter);
 
     //Slots de gerais
     connect(ui->act_goto, SIGNAL(triggered()), this, SLOT(goToLine()));
@@ -55,48 +58,47 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    if( m_editor )
+    /*if( m_editor )
     {
         delete m_editor;
         m_editor = nullptr;
-    }
+    }*/
 
     //if( m_proxy )
         //delete m_proxy;
 
-    if( m_luaProcessor )
+    /*if( m_luaProcessor )
     {
         //Luna<EditorProxy>::gc_obj(m_luaProcessor->state());
         delete m_luaProcessor;
-    }
+    }*/
 }
 
-PlainEditor* MainWindow::setupEditor()
+void MainWindow::setupEditor()
 {
     QFont font;
     font.setFamily("Courier");
     font.setFixedPitch(true);
-    font.setPointSize(10);
+    font.setPointSize(18);
 
-    PlainEditor* editor = new PlainEditor;
-    editor->setFont(font);
-    editor->installEventFilter(this);
+    m_editor = std::unique_ptr<PlainEditor>(new PlainEditor);
+    m_editor->setFont(font);
+    m_editor->installEventFilter(this);
 
-    m_proxy->registerEditor(editor);
-
-    return editor;
+    //m_proxy->registerEditor(m_editor.get());
+    setCentralWidget(m_editor.get());
 }
 
 bool MainWindow::eventFilter(QObject * obj, QEvent * event)
 {
-    /*if( obj == m_editor )
-    {
+    //if( obj == m_editor )
+    //{
         //Update relevant information
+        updateStatusBar();
+    //    m_editor->eventFilter(this, event);
+    //}
 
-        return m_editor->eventFilter(this, event);
-    }*/
-    updateStatusBar();
-    return QObject::eventFilter(obj, event);
+    return m_editor->eventFilter(this, event);
 }
 /*
 void MainWindow::mousePressEvent(QMouseEvent * e)
@@ -116,13 +118,13 @@ void MainWindow::mousePressEvent(QMouseEvent * e)
 
 void MainWindow::updateStatusBar()
 {
-    if( m_editor != nullptr )
+    if( m_editor.get() != nullptr )
     {
         QString status = QString(tr("Coluna: %1 Editável: %2 Tipo: %3")).
                 arg(m_editor->columnNumber()).
                 arg(m_editor->isEditable() ? "sim" : "não").
                 arg(m_editor->objectType());
-        std::cout << status.toStdString() << std::endl;
+       // std::cout << status.toStdString() << std::endl;
         ui->m_statusBar->showMessage(status);
     }
 }
@@ -138,26 +140,27 @@ void MainWindow::setupMainWindow()
     m_mdiarea.setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_mdiarea.setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_mdiarea.setTabsClosable(true);
+    m_mdiarea.setTabsMovable(true);
 
     //Insert widgets at splitter
     m_splitter.addWidget(&m_treeview);
     m_splitter.addWidget(&m_mdiarea);
 
     //Setup Lua
-    m_luaProcessor = new LuaProcessor;
-    m_proxy = new EditorProxy(m_luaProcessor->state());
-    Luna<EditorProxy>::Register(m_luaProcessor->state(), m_proxy);
+    m_luaProcessor = std::unique_ptr<LuaProcessor>(new LuaProcessor);
+    //m_proxy = std::unique_ptr<EditorProxy>(new EditorProxy(nullptr));
+    //Luna<EditorProxy>::Register(m_luaProcessor->state(), m_proxy.get());
 }
 
 ////////////////
 //Slots
 
-void MainWindow::openNewEditor()
-{
-    PlainEditor* editor = setupEditor();
-    connect(editor, SIGNAL(openNewEditor()), this, SLOT(openNewEditor()));
-    this->m_mdiarea.addSubWindow(editor);
-}
+//void MainWindow::openNewEditor(Object* object)
+//{
+    //PlainEditor* editor = setupEditor();
+    //connect(editor, SIGNAL(openNewEditor()), this, SLOT(openNewEditor()));
+    //this->m_mdiarea.addSubWindow(editor);
+//}
 
 void MainWindow::goToLine()
 {
@@ -304,4 +307,36 @@ void MainWindow::createBSW()
 {
     BSWDialog dialog;
     dialog.exec();
+}
+
+void MainWindow::loadBSW()
+{
+    try
+    {
+        std::vector<const SoftwareBase*> bsws = DatabaseManager::instance().findAll<SoftwareBase>("BSW");
+
+        if(bsws.empty())
+        {
+            QMessageBox::warning(this, "Erro", "Não existem bases de software na base de dados.");
+            return;
+        }
+
+        ListBSW dialog(bsws, this);
+        if(dialog.exec() == QDialog::Accepted)
+        {
+            SoftwareBase* bsw = const_cast<SoftwareBase*>(dialog.selectedBSW());
+            m_curBSW = std::unique_ptr<SoftwareBase>(bsw);
+            initBSW();
+        }
+    }
+    catch(std::exception& ex)
+    {
+        std::cout << ex.what() << std::endl;
+    }
+}
+
+void MainWindow::initBSW()
+{
+    //Carrega as informações da base de software selecionada
+    //Monta árvore de dados
 }

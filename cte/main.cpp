@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     catch(std::exception& ex)
     {
         //That catch is only for exceptions not treated
-        std::cout << ex.what() << std::endl;
+        std::cout << "Erro: " << ex.what() << std::endl;
     }
 
     return ret;

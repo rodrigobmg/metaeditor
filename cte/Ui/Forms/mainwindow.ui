@@ -34,7 +34,7 @@
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
-     <string>Ferramentas</string>
+     <string>Editor</string>
     </property>
     <addaction name="act_goto"/>
    </widget>
@@ -52,6 +52,7 @@
     </property>
     <addaction name="act_createBSW"/>
     <addaction name="act_loadBSW"/>
+    <addaction name="act_editBSW"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuKnowledgeBase"/>
@@ -115,6 +116,11 @@
   <action name="act_loadBSW">
    <property name="text">
     <string>Carregar base de software</string>
+   </property>
+  </action>
+  <action name="act_editBSW">
+   <property name="text">
+    <string>Editar base de software</string>
    </property>
   </action>
  </widget>
