@@ -13,4 +13,6 @@ set(MONGOC_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/libs/mongo-c-driver/bin)
 set(MONGOC_INCLUDE_DIR ${MONGOC_ROOT}/include)
 set(MONGOC_LIBS_DIR ${MONGOC_ROOT}/lib)
 
+#Configuração do Redis
+
 endmacro()

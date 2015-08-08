@@ -12,7 +12,9 @@ configure_libraries()	  #definido no modulo configure_libraries.cmake
 set(enable_tests ON)
 
 ##Sub-Projetos
-add_subdirectory(core)
-add_subdirectory(cte)
-add_subdirectory(data)
-add_subdirectory(tests)
+#add_subdirectory(core)
+#add_subdirectory(cte)
+#add_subdirectory(data)
+#add_subdirectory(tests)
+
+add_subdirectory(editor)
