@@ -3,19 +3,23 @@ project(cte CXX C)
 
 ##Inclusões do cmakes
 include(../cmake/qt_config.cmake)
+include(../cmake/utils.cmake)
 
 ##Macros definidas
 configure_qt()         	#definido no modulo qt_config.cmake
+compiler_config()
 
 ##Especificação dos módulos a serem compilados
 set(metaeditor_SOURCES
         Ui/mainwindow.cpp
+        Data/redislayer.cpp
         main.cpp
         editor.cpp)
 
 ##Especificação dos cabeçalhos do projeto
 set(metaeditor_HEADERS
         Ui/mainwindow.h
+        Data/redislayer.h
         editor.h
         Lua/luna.h)
 
@@ -36,5 +40,5 @@ include_directories(${LUA_INCLUDE_DIR}) #Inclusão do diretório onde estão os 
 add_executable(metaeditor ${metaeditor_SOURCES}
                           ${metaeditor_FORMS_HEADERS})
 
-target_link_libraries(metaeditor lua ${Qt5Widgets_LIBRARIES})
+target_link_libraries(metaeditor lua redox_static ${Qt5Widgets_LIBRARIES} hiredis ev pthread)
 install(TARGETS metaeditor ARCHIVE RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/bin)

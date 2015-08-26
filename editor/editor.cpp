@@ -46,10 +46,10 @@ public:
         Relation
     };
 
-    explicit Field(const std::string& text, int idValue, FieldType type, int startLine, int startCol, int size = Unlimited);
+    explicit Field(const std::string& text, int idValue, FieldType type = Text, int startLine = 0, int startCol = 0);
     ~Field();
-    bool Insert(char c, int line, int col);
-    void Insert(const std::string& text, int line, int col);
+    bool Insert(char c, int line, int col, bool updateEndCol = true);
+    void Insert(const std::string& text);
     bool Remove(int line, int col);
     bool Intersect(int line, int col);
     int Line();
@@ -65,7 +65,6 @@ private:
     int m_endLine;   //Linha final, caso não tenha enter na string deve ser igual a linha inicial
     int m_startCol;  //Coluna inicial na linha inicial
     int m_endCol;    //Coluna final do campo, normalmente utilizado para campos de título
-    int m_size;      //Tamanho máximo de caracteres, caso não tenha limites deve ser -1
     FieldType m_type;//Tipo do campo
     std::vector<char> m_characters; //Caracteres
 
@@ -74,15 +73,14 @@ private:
     int m_idValue;//Melhorar esse nome
 };
 
-Field::Field(const std::string& text, int idValue, FieldType type, int startLine, int startCol, int size) :
+Field::Field(const std::string& text, int idValue, FieldType type, int startLine, int startCol) :
     m_startLine(startLine),
     m_endLine(startLine),
     m_startCol(startCol),
-    m_size(size),
     m_type(type),
     m_idValue(idValue)
 {
-    this->Insert(text, startLine, startCol);
+    this->Insert(text);
 }
 
 Field::~Field()
@@ -90,86 +88,61 @@ Field::~Field()
     m_characters.clear();
 }
 
-bool Field::Insert(char c, int line, int col)
+bool Field::Insert(char c, int line, int col, bool updateEndCol)
 {
-    if( c != '\n' && (m_size != Unlimited && (m_characters.size() + 1) > (size_t)m_size) )
+    if( m_type == Text )
     {
-        return false;
-    }
+        int startCol = this->GetStartColumn(line);
+        col = startCol + col;
 
-    /// string TESTE\nDE
-    /// coluna 12345 678
-    /// linha  00000  11
-    ///
-    std::string::const_iterator it;
-    int startCol = 0;
-
-    if( m_startCol == 0 )
-    {
-        it = m_characters.end();
-    }
-    else
-    {
-        startCol = this->GetStartColumn(line);
-        if( startCol == 0 )
+        if( c == '\n' )
         {
-            it = m_characters.end();
-        }
-        else
-        {
-            col = col - m_startCol;
-            it = m_characters.begin() + col;
-        }
-    }
-
-    //std::cout << "[Field][Insert][m_startcol]" << "["<< m_startCol <<"]" << "["<< col <<"]" << "["<< startCol <<"]"<< std::endl;
-
-
-    /*if( startCol == 0 )
-    {
-        if(col > m_size)
-        {
-            it = m_characters.end();
+            m_endLine++;
         }
     }
     else
     {
-        col = col + startCol;
-        it = m_characters.begin()+col;
-    }*/
+        col = (m_startCol == 0 ? col : (col - m_startCol));
+    }
 
-    m_characters.insert(it, 1, c);
+    m_characters.insert(m_characters.begin() + col, c);
 
-    if(c == '\n' && this->m_type == Text)
+    if( updateEndCol )
     {
-        m_endLine++;
+        m_endCol += 1;
     }
 
     return true;
 }
 
-void Field::Insert(const std::string& text, int line, int col)
-{//Adicionar checagens?
-    col = col + this->GetStartColumn(line);
-    m_characters.resize(m_characters.size() + text.size() + 1);
-    m_characters.insert(m_characters.end(), text.begin(), text.end());
+void Field::Insert(const std::string& text)
+{
+    m_characters.insert(m_characters.begin(), text.begin(), text.end());
 
-    if(m_type == Title)
+    if(m_type == Text)
     {
-        m_endCol = text.size() - 1;
+        auto vec = Split(text, '\n');
+        m_endLine = m_startLine + (vec.size() - 1);
+    }
+    else
+    {
+        m_endCol = m_startCol + text.size();
     }
 }
 
 bool Field::Remove(int line, int col)
 {
-    if( (size_t)col > m_characters.size() )
+    if(m_type == Text)
     {
-        return false;
+        col = col + GetStartColumn(line);
+    }
+    else
+    {
+        col -= m_startCol;
     }
 
     auto it = m_characters.begin();
-    col = col + GetStartColumn(line);
-    m_characters.erase(it+col, it+col+1);
+    m_characters.erase(it+col);
     return true;
 }
 
@@ -178,36 +151,28 @@ int Field::Line()
     return m_endLine;
 }
 
-///////////////////////////////////////////////////////
-/// 0       9                26       35
-/// Título: Meu eu Boguremeu Título2: Nova coisa feita
-/// ^^^^^^^ ^^^^^^^^^^^^^^^^ ^^^^^^^^ ^^^^^^^^^^^^^^^^
-/// 1111111 2222222222222222 33333333 4444444444444444
-/// Coluna 16
 bool Field::Intersect(int line, int col)
 {
-    //std::cout << "[Intersect]["<< ToString() <<"]" << "["<< m_startCol <<"]" << "["<< m_endCol <<"]" << std::endl;
-
-    if(line < m_startLine || line > m_endLine)
+    if( line >= m_startLine && line <= m_endLine )
     {
-        return false;
-    }
-
-    if( m_size != Unlimited )
-    {
-        if( col < m_startCol || col > m_endCol )
+        if( m_type == Text )
         {
-            return false;
+            return true;
+        }
+
+        if(col >= m_startCol && col <= m_endCol)
+        {
+            return true;
         }
     }
 
-    return true;
+    return false;
 }
 
 int Field::GetStartColumn(int line)
 {
     if(line == 0 || m_characters.size() == 0)
-    {//Não tem necessidade de virtualizar as linhas
+    {
         return 0;
     }
 
@@ -220,15 +185,15 @@ int Field::GetStartColumn(int line)
             lines++;
         }
 
-        if( lines == line )
+        if( lines == (line - m_startLine) )
         {
-            break;
+            return col;
         }
 
         col++;
     }
 
-    return col + 1;//Uma coluna após a quebra de linha
+    return col;
 }
 
 std::string Field::ToString()
@@ -258,7 +223,8 @@ void Field::Print()
 Editor::Editor()
     : m_luaState(nullptr),
       m_currentLine(0),
-      m_currentColumn(0)
+      m_currentColumn(0),
+      m_needsUpdate(false)
 {
     CreateField(0, "teste de campo");
 }
@@ -282,11 +248,6 @@ Editor::Editor(const std::string luaScript, int objectId)
 
 Editor::~Editor()
 {
-//    if( m_luaState )
-//    {
-//        lua_close(m_luaState);
-//    }
-
     for(auto field : m_fields)
     {
         delete field;
@@ -307,8 +268,6 @@ void Editor::UpdateCursor(int currentLine, int currentColumn)
 
 void Editor::JumpLine(int n)
 {
-    //std::cout << "line: " << m_currentLine << " Column: " << m_currentColumn << std::endl;
-
     auto field = GetLastFieldOfLine(m_currentLine);
 
     if( field == nullptr )
@@ -316,7 +275,8 @@ void Editor::JumpLine(int n)
         return;
     }
 
-    field->Insert('\n', m_currentLine, m_currentColumn);
+    field->Insert(' ', m_currentLine, m_currentColumn);
+    field->Insert('\n', m_currentLine, m_currentColumn + 1, false);//Mantém um espaço para inserção de novos dados
     field->Print();
 
     QTextBlock block = this->document()->findBlockByLineNumber(n);
@@ -345,7 +305,6 @@ void Editor::JumpLine(int n)
 
 Field* Editor::GetField(unsigned int line, unsigned int column)
 {
-    //std::cout << "[GetField]" << "["<< m_fields.size() <<"]" << std::endl;
     for( auto field : m_fields )
     {
         if( field->Intersect(line, column) == true )
@@ -396,20 +355,18 @@ bool Editor::Empty() const
 ///
 bool Editor::eventFilter(QObject* obj, QEvent * event)
 {
-    unsigned int curColumn = m_currentColumn;//textCursor().columnNumber();
-    unsigned int curLine = m_currentLine;//textCursor().blockNumber();
+    m_currentColumn = textCursor().columnNumber();
+    m_currentLine = textCursor().blockNumber();
 
     if( Empty() == true )
     {
         return QObject::eventFilter(obj, event);
     }
 
-    std::cout << "[eventFilter]" << "["<< curLine <<"]" << "["<< curColumn <<"]" << std::endl;
-    Field* field = GetField(curLine, curColumn);
+    std::cout << "[eventFilter]" << "["<< m_currentLine <<"]" << "["<< m_currentColumn <<"]" << std::endl;
+    Field* field = GetField(m_currentLine, m_currentColumn);
     if( field == nullptr )
     {
-        UpdateCursor(curLine, curColumn);
-        //std::cout << "Merda" << std::endl;
         return QObject::eventFilter(obj, event);
     }
 
@@ -421,42 +378,20 @@ bool Editor::eventFilter(QObject* obj, QEvent * event)
         {
             case Qt::Key_CapsLock:
             case Qt::Key_Shift:
-            {
-                return QObject::eventFilter(obj, event);
-            }
-
             case Qt::Key_Left:
-            {
-                (--m_currentColumn) < 0 ? m_currentColumn = 0 : m_currentColumn;
-                UpdateCursor(m_currentLine, m_currentColumn);
-                return QObject::eventFilter(obj, event);
-            }
             case Qt::Key_Down:
-            {
-                (--m_currentLine) < 0 ? m_currentColumn = 0 : m_currentColumn;
-                UpdateCursor(m_currentLine, m_currentColumn);
-                return QObject::eventFilter(obj, event);
-            }
             case Qt::Key_Right:
-            {
-                //(--m_currentColumn) < 0 ? m_currentColumn = 0 : m_currentColumn;
-                UpdateCursor(m_currentLine, ++m_currentColumn);
-                return QObject::eventFilter(obj, event);
-            }
             case Qt::Key_Up:
             {
-                UpdateCursor(++m_currentLine, m_currentColumn);
                 return QObject::eventFilter(obj, event);
             }
 
             case Qt::Key_Enter:
             case Qt::Key_Return:
             {
-                field->Insert('\n', curLine, curColumn);
-                m_currentLine++;
-                m_currentColumn = 0;
+                field->Insert('\n', m_currentLine, m_currentColumn);
                 emit Repaint();
-                UpdateCursor(m_currentLine, m_currentColumn);
+                m_needsUpdate = true;
                 return true;
             }
 
@@ -464,8 +399,8 @@ bool Editor::eventFilter(QObject* obj, QEvent * event)
             {
                 if(textCursor().selectionStart() == textCursor().selectionEnd())
                 {
-                    field->Remove(curLine, curColumn - 1);
-                    m_currentColumn--;
+                    field->Remove(m_currentLine, m_currentColumn);
+                    m_needsUpdate = true;
                 }
                 emit Repaint();
                 return true;
@@ -475,7 +410,8 @@ bool Editor::eventFilter(QObject* obj, QEvent * event)
             {
                 if(textCursor().selectionStart() == textCursor().selectionEnd())
                 {
-                    field->Remove(curLine, curColumn);
+                    field->Remove(m_currentLine, m_currentColumn);
+                    m_needsUpdate = true;
                 }
                 emit Repaint();
                 return true;
@@ -483,56 +419,64 @@ bool Editor::eventFilter(QObject* obj, QEvent * event)
 
             default:
             {
-                field->Insert(keyEvent->text().at(0).toLatin1(), curLine, curColumn);
-                m_currentColumn++;
+                field->Insert(keyEvent->text().at(0).toLatin1(), m_currentLine, m_currentColumn + 1);
+                m_needsUpdate = true;
                 emit Repaint();
                 return true;
             }
         }
     }
 
-    //Continua a execução normalmente
     return QObject::eventFilter(obj, event);
 }
 
 ////////
 /// Funções de auxílio
 ///
-void Editor::CreateField(int objectValue, const std::string &text, int size)
+void Editor::CreateField(int objectValue, const std::string &text)
 {
-    std::cout << "[CreateField]" << "["<< m_currentLine <<"]" << std::endl;
-    Field* field = new Field(text, objectValue, Field::Title, m_currentLine, m_currentColumn, size);
-
-    auto vec = Split(text, '\n');
-
-    //Se o texto possui quebras de linha
-    // atualizamos a linha corrente para refletir a última linha
-    // e colocamos a coluna corrente para a posição zero
-    if( vec.size() > 1 )
+    Field::FieldType type = Field::Title;
+    if( objectValue == 4 )
     {
-        std::cout << "vec.size()" << vec.size() << std::endl;
+        type = Field::Text;
+    }
+
+    auto field = new Field(text, objectValue, type, m_currentLine, m_currentColumn);
+
+    if( type == Field::Text)
+    {
+        auto vec = Split(text, '\n');
         m_currentLine += vec.size();
         m_currentColumn = 0;
     }
-
-    m_currentColumn += text.size();//Atualiza a coluna corrente
+    else
+    {
+        m_currentColumn += text.size();//Atualiza a coluna corrente
+        field->Insert(' ', m_currentLine, m_currentColumn, false);
+    }
 
     this->m_fields.push_back(field);
+    m_needsUpdate = true;
 }
 
 void Editor::Paint()
 {
-    std::string text;
-    clear();
-    for( auto field : m_fields )
+    if( m_needsUpdate )
     {
-        text.append(field->ToString());
+        std::string text;
+        clear();
+        std::cout << "text size " << this->document()->characterCount() << std::endl;
+        for( auto field : m_fields )
+        {
+            auto str = field->ToString();
+            std::cout << "string: " << str << " size: " << str.size() << std::endl;
+            text.append(field->ToString());
+        }
+
+        std::cout << "size: " << text.size() << std::endl;
+        insertPlainText(QString::fromStdString(text));
+        m_needsUpdate = false;
     }
-
-
-    //textCursor().insertText(QString::fromStdString(text));
-    insertPlainText(QString::fromStdString(text));
-    //UpdateCursor();
 }
 
 ////////
@@ -566,7 +510,7 @@ int Editor::CreateField(lua_State *env)
 
     std::cout << "[Lua][CreateField] " << "value: " << objectValue << " text: " << text << std::endl;
 
-    CreateField(objectValue, text, text.size());
+    CreateField(objectValue, text);
 
     return -1;
 }

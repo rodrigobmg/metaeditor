@@ -44,7 +44,7 @@ signals:
 
 private:
     //Versão especializada para criação do campo de edição
-    void CreateField(int objectValue, const std::string& text, int size = Unlimited);
+    void CreateField(int objectValue, const std::string& text);
     Field* GetField(unsigned int line, unsigned int column);
     Field* GetLastFieldOfLine(unsigned int line);
     bool Empty() const;
@@ -61,6 +61,7 @@ private:
     //             do script Lua
     int m_currentLine;
     int m_currentColumn;
+    bool m_needsUpdate;
 
     //Objeto corrente que está sendo alterado pelo editor
     int m_currentObject;
